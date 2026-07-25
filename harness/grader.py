@@ -21,7 +21,21 @@ SUBSTITUTIONS = {
 
 
 def find_files(workspace: pathlib.Path, pattern: str) -> list[pathlib.Path]:
-    return list(workspace.glob(pattern))
+    """Glob with a preference for the canonical spec-named file.
+
+    If the glob matches multiple files (e.g. debug _*.kicad_sch files scattered
+    by an iterating agent), prefer the one whose name matches the project base
+    name implied by `eval_spec['id']` or the run manifest. Otherwise pick
+    alphabetically first.
+    """
+    matches = sorted(workspace.glob(pattern))
+    if not matches:
+        return matches
+    # Prefer the canonical file (no underscore prefix, no 'nolib' suffix)
+    canonical = [m for m in matches if not m.name.startswith('_') and 'nolib' not in m.name.lower()]
+    if canonical:
+        return canonical
+    return matches
 
 
 def run_deterministic(check: dict, workspace: pathlib.Path) -> dict:

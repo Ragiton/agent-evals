@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-25T22:28:32.554905Z",
+  "generated_at": "2026-07-25T22:38:25.648410Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -313,7 +313,7 @@
       "model": "claude-sonnet-4-6",
       "started_at": "2026-07-25T22:14:00Z",
       "finished_at": "2026-07-25T22:26:00Z",
-      "graded_at": "2026-07-25T22:28:23.098069Z",
+      "graded_at": "2026-07-25T22:38:23.998747Z",
       "exit_code": 1,
       "deterministic": [
         {
@@ -369,10 +369,7 @@
       "deterministic_score": 0.7142857142857143,
       "final_score": 0.7142857142857143,
       "passed": true,
-      "llm_judge": {
-        "pass": "DEFERRED",
-        "model": "gpt-5.6-luna"
-      },
+      "llm_judge": null,
       "cross_grades": []
     },
     {
@@ -381,29 +378,29 @@
       "agent": "cursor-agent",
       "model": "composer-2.5",
       "started_at": "2026-07-25T22:19:00Z",
-      "finished_at": null,
-      "graded_at": "2026-07-25T22:21:46.749529Z",
-      "exit_code": null,
+      "finished_at": "2026-07-25T22:36:00Z",
+      "graded_at": "2026-07-25T22:38:25.528508Z",
+      "exit_code": 0,
       "deterministic": [
         {
           "name": "schematic_erc_clean",
           "pass": false,
-          "exit_code": 1,
-          "stdout": "Unknown argument: --exit-code\nUsage: erc [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--format VAR] [--units VAR] [--severity-all] [--severity-error] [--severity-warning] [--severity-exclusions] [--exit-code-violations] INPUT_FILE\n\nRuns the Electrical Rules Check (ERC) on the schematic and creates a report\n\nPositional arguments:\n  INPUT_FILE              Input file \n\nOptional arguments:\n  -h, --help              Shows help message and exits \n  -o, --output            Output file [nargs=0..1] [default: \"\"]\n  -D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.\n                          Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]\n  --format                Output file format, options: json, report [nargs=0..1] [default: \"report\"]\n  --units                 Report units; valid options: in, mm, mils [nargs=0..1] [default: \"mm\"]\n  --severity-all          Report all ERC violations, this is equivalent to including all the other severity arguments \n  --severity-error        Report all ERC error level violations, this can be combined with the other severity arguments \n  --severity-warning      Report all ERC warning level violations, this can be combined with the other severity arguments \n  --severity-exclusions   Report all excluded ERC violations, this can be combined with the other severity arguments \n  --exit-code-violations  Return a nonzero exit code if ERC violations exist \n",
+          "exit_code": 5,
+          "stdout": "Found 130 violations\nSaved ERC Report to led-blinky-erc.json\n",
           "stderr": ""
         },
         {
           "name": "pcb_drc_clean",
           "pass": false,
-          "exit_code": 1,
-          "stdout": "Unknown argument: --exit-code\nUsage: drc [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--format FORMAT] [--all-track-errors] [--schematic-parity] [--units UNITS] [--severity-all] [--severity-error] [--severity-warning] [--severity-exclusions] [--exit-code-violations] INPUT_FILE\n\nRuns the Design Rules Check (DRC) on the PCB and creates a report\n\nPositional arguments:\n  INPUT_FILE              Input file \n\nOptional arguments:\n  -h, --help              Shows help message and exits \n  -o, --output            Output file [nargs=0..1] [default: \"\"]\n  -D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.\n                          Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]\n  --format                Output file format, options: json, report [nargs=0..1] [default: \"report\"]\n  --all-track-errors      Report all errors for each track \n  --schematic-parity      Test for parity between PCB and schematic \n  --units                 Report units; valid options: in, mm, mils [nargs=0..1] [default: \"mm\"]\n  --severity-all          Report all DRC violations, this is equivalent to including all the other severity arguments \n  --severity-error        Report all DRC error level violations, this can be combined with the other severity arguments \n  --severity-warning      Report all DRC warning level violations, this can be combined with the other severity arguments \n  --severity-exclusions   Report all excluded DRC violations, this can be combined with the other severity arguments \n  --exit-code-violations  Return a nonzero exit code if DRC violations exist \n",
+          "exit_code": 5,
+          "stdout": "Found 136 violations\nFound 2 unconnected items\nSaved DRC Report to led-blinky-drc.json\n",
           "stderr": ""
         },
         {
           "name": "gerbers_exported",
-          "pass": false,
-          "exit_code": 2,
-          "stdout": "ls: cannot access 'gerbers/*.gtl': No such file or directory\nls: cannot access 'gerbers/*.gbl': No such file or directory\nls: cannot access 'gerbers/*.drl': No such file or directory\n",
+          "pass": true,
+          "exit_code": 0,
+          "stdout": "",
           "stderr": ""
         },
         {
@@ -418,7 +415,7 @@
           "pass": true,
           "exit_code": 0,
           "stdout": "",
-          "stderr": ""
+          "stderr": "jq: parse error: Invalid numeric literal at line 1, column 6\n"
         },
         {
           "name": "usb_c_footprint",
@@ -435,9 +432,9 @@
           "stderr": ""
         }
       ],
-      "deterministic_score": 0.5714285714285714,
-      "final_score": 0.5714285714285714,
-      "passed": false,
+      "deterministic_score": 0.7142857142857143,
+      "final_score": 0.7142857142857143,
+      "passed": true,
       "llm_judge": null,
       "cross_grades": []
     }
