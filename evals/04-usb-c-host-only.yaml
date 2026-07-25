@@ -1,0 +1,109 @@
+id: usb-c-host-only
+title: "USB-C Receptacle (Host/Power Only)"
+version: 1.0.0
+difficulty: 2
+estimated_minutes: 25
+category: kicad/connector
+
+description: |
+  Design a small carrier board that exposes a USB-C receptacle for power and
+  ground only (no data). CC1 and CC2 pins need 5.1 kΩ pulldowns to advertise
+  as a UFP / sink device. Includes ESD protection on VBUS and a 4-pin breakout
+  header (VBUS, GND, GND, GND).
+
+functional_requirements:
+  - USB-C 16-pin mid-mount receptacle (e.g. GCT USB4105-GF-A)
+  - CC1 and CC2 tied to GND through 5.1 kΩ 1% resistors (sink/UFP mode)
+  - VBUS line with TVS diode (e.g. SMAJ5.0CA) for ESD protection
+  - VBUS filtered with 100 nF + 10 µF caps
+  - 4-pin breakout header: VBUS, GND, GND, GND (each rated 3 A)
+  - Board outline ~30 mm x 20 mm
+
+engineering_requirements:
+  - ERC clean
+  - DRC clean
+  - VBUS trace width >= 1.0 mm (8 mil per 1 A rule of thumb; 3 A peak → 2.4 mm wide or use polygon pour)
+  - GND pour on bottom
+  - Mounting holes for the USB-C receptacle (4 corners or 2 outer)
+  - Shield pin (S1-S4) connected to GND pour
+
+prompt: |
+  Design a USB-C receptacle carrier board in KiCad. Power only, no data.
+
+  Required:
+  - USB-C 16-pin mid-mount receptacle (e.g. GCT USB4105-GF-A or similar)
+  - CC1 (pin A5) and CC2 (pin B5) each pulled to GND through 5.1 kΩ 1% 0402
+  - VBUS (A4, B4, A9, B9 all connected) with:
+    - TVS diode (SMAJ5.0CA or similar) from VBUS to GND
+    - 100 nF 0402 cap on VBUS to GND
+    - 10 µF 0805 cap on VBUS to GND (bulk)
+  - 4-pin 0.1" header: pin 1=VBUS, pin 2-4=GND
+  - Mounting holes for the USB-C shell
+  - Shield pin (S1-S4) connected to GND pour
+  - Board outline 30 mm x 20 mm
+
+  Constraints:
+  - File base: usb-c-host
+  - All VBUS traces >= 1.0 mm wide
+  - Avoid putting CC pulldowns right next to VBUSESD components (keep them short)
+  - Place outputs in:
+    ./usb-c-host.kicad_pro
+    ./usb-c-host.kicad_sch
+    ./usb-c-host.kicad_pcb
+    ./gerbers/
+    ./BOM.csv
+
+  Verify ERC + DRC clean.
+
+inputs:
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace/
+
+outputs:
+  - usb-c-host.kicad_pro
+  - usb-c-host.kicad_sch
+  - usb-c-host.kicad_pcb
+  - gerbers/*.gtl
+  - gerbers/*.gbl
+  - gerbers/*.drl
+  - BOM.csv
+
+grading:
+  deterministic:
+    - name: schematic_erc_clean
+      command: "kicad-cli sch erc {kicad_sch} --exit-code"
+      pass: exit_code == 0
+    - name: pcb_drc_clean
+      command: "kicad-cli pcb drc {kicad_pcb} --exit-code"
+      pass: exit_code == 0
+    - name: gerbers_exported
+      check: "[ -d gerbers ] && [ $(ls gerbers/*.gtl 2>/dev/null | wc -l) -ge 1 ]"
+      pass: count >= 1
+    - name: cc_pulldowns_named
+      check: "grep -E '5\\.1k|5k1' {kicad_sch}"
+      pass: count >= 2
+    - name: tvs_in_bom
+      check: "grep -i 'tvs\\|smaj' BOM.csv"
+      pass: present
+  llm_judge:
+    enabled: true
+    model: gpt-5.6-luna
+    prompt: |
+      Examine the USB-C carrier. Verify:
+      1. Both CC1 and CC2 have 5.1 kΩ pulldowns (correct for UFP/sink)
+      2. VBUS TVS clamps overvoltage (TVS voltage >= 5.5 V, <= 6 V)
+      3. Bulk cap is closer to VBUS pin than smaller decouplers
+      4. Shield pin is connected to GND pour (not floating)
+      5. Polarity of header (VBUS first, GND next) is documented
+      Rate 1-5 for each.
+  weights:
+    deterministic: 0.6
+    llm_judge: 0.4
+
+passing_threshold: 0.7
+
+metadata:
+  area_of_test: [connector_pcb, usb_type_c, esd_protection, power_rails]
+  layer_count: 2
+  estimated_components: 7

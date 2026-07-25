@@ -1,0 +1,103 @@
+id: bme280-sensor-breakout
+title: "BME280 I2C Sensor Breakout"
+version: 1.0.0
+difficulty: 2
+estimated_minutes: 30
+category: kicad/breakout
+
+description: |
+  Design a compact breakout board for the Bosch BME280 temperature/pressure/humidity
+  sensor. I2C interface, 4-pin header (3V3, GND, SDA, SCL). Pull-ups on I2C lines,
+  decoupling caps, level shifting is NOT required (sensor is 3V3 native).
+
+functional_requirements:
+  - BME280 in standard LGA-8 footprint (3.0 x 2.5 mm)
+  - 4-pin 0.1" header: 3V3, GND, SDA, SCL
+  - 4.7 kΩ I2C pull-ups on SDA and SCL to 3V3
+  - 100 nF decoupling cap on VDD, 1 µF bulk cap on VDDIO
+  - Voltage rail label clearly marked as 3V3 (sensor is 3V3 native; no onboard regulator)
+  - Board outline ~25 mm x 15 mm
+
+engineering_requirements:
+  - ERC clean
+  - DRC clean (KiCad defaults)
+  - Castellated or through-hole pads (typical for breakouts) — pick through-hole for simplicity
+  - All components on top side
+  - Silkscreen: pin 1 marker on BME280, header pin labels
+
+prompt: |
+  Design a 2-layer BME280 breakout board in KiCad.
+
+  Required:
+  - BME280 sensor (LGA-8, 3.0 x 2.5 mm footprint) - use a KiCad library symbol+footprint
+  - 4-pin 0.1" header: pin 1=3V3, pin 2=GND, pin 3=SDA, pin 4=SCL
+  - 4.7 kΩ I2C pull-ups on SDA and SCL to 3V3 (0805)
+  - 100 nF decoupling cap on VDD (0402)
+  - 1 µF bulk cap on VDDIO (0402)
+  - Board outline 25 mm x 15 mm
+  - All through-hole pads, top-side components
+  - Schematic, PCB, gerbers, BOM
+
+  Constraints:
+  - File base: bme280-breakout
+  - Sensor is 3V3 native; do NOT add a regulator
+  - Place outputs in:
+    ./bme280-breakout.kicad_pro
+    ./bme280-breakout.kicad_sch
+    ./bme280-breakout.kicad_pcb
+    ./gerbers/
+    ./BOM.csv
+  - Verify ERC + DRC clean before finishing
+
+inputs:
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace/
+
+outputs:
+  - bme280-breakout.kicad_pro
+  - bme280-breakout.kicad_sch
+  - bme280-breakout.kicad_pcb
+  - gerbers/*.gtl
+  - gerbers/*.gbl
+  - gerbers/*.drl
+  - BOM.csv
+
+grading:
+  deterministic:
+    - name: schematic_erc_clean
+      command: "kicad-cli sch erc {kicad_sch} --exit-code"
+      pass: exit_code == 0
+    - name: pcb_drc_clean
+      command: "kicad-cli pcb drc {kicad_pcb} --exit-code"
+      pass: exit_code == 0
+    - name: gerbers_exported
+      check: "[ -d gerbers ] && [ $(ls gerbers/*.gtl gerbers/*.gbl 2>/dev/null | wc -l) -ge 2 ]"
+      pass: count >= 2
+    - name: i2c_pullups_present
+      check: "grep -i '4.7k\\|4k7' {kicad_sch} | wc -l"
+      pass: count >= 2
+    - name: bme280_in_bom
+      check: "grep -i 'bme280' BOM.csv"
+      pass: present
+  llm_judge:
+    enabled: true
+    model: gpt-5.6-luna
+    prompt: |
+      Examine the BME280 breakout. Verify:
+      1. Footprint is correct for BME280 (LGA-8, 2.5 mm pitch or similar)
+      2. Decoupling cap is placed close to VDD pin
+      3. I2C pull-ups are between SDA/SCL and 3V3 (NOT 5V)
+      4. Header pin order is logical (power first, GND next, signal after)
+      5. No extraneous components (no regulator, no level shifter)
+      Rate 1-5 for each.
+  weights:
+    deterministic: 0.6
+    llm_judge: 0.4
+
+passing_threshold: 0.7
+
+metadata:
+  area_of_test: [schematic_capture, pcb_layout, sensor_breakout, i2c_basics]
+  layer_count: 2
+  estimated_components: 6

@@ -1,0 +1,119 @@
+id: two-layer-impedance-match
+title: "4-Layer Board with 90Ω USB Differential Pair"
+version: 1.0.0
+difficulty: 5
+estimated_minutes: 75
+category: kicad/highspeed
+
+description: |
+  Design a 4-layer PCB that demonstrates controlled-impedance routing of a 90 Ω
+  differential pair (USB 2.0 D+/D-). The agent must compute the trace geometry
+  for the impedance target, place the pair on an inner layer, and document the
+  assumed stackup and dielectric.
+
+functional_requirements:
+  - 4-layer board stackup: top (signal), inner1 (GND), inner2 (PWR), bottom (signal)
+  - 90 Ω differential impedance target for USB D+/D- pair (90 Ω ±10%)
+  - Pair on inner1 (GND reference) for best impedance stability
+  - Trace width and spacing computed from stackup (target 1.0 mm wide, 0.15 mm gap)
+  - Reference design: ESP32-S3 USB D+/D- → USB-C receptacle
+  - Length-matched within 150 mil (3.8 mm)
+  - AC coupling caps on D+/D- (or none, depending on topology)
+  - ESD protection on D+/D-
+
+engineering_requirements:
+  - ERC clean
+  - DRC clean
+  - Impedance-controlled: trace width consistent, spacing consistent
+  - Vias on USB pair: minimize, use stitching GND vias alongside
+  - Layer stackup explicitly defined and documented in netlist/schematic notes
+  - Follow JEDEC/IPC-2141 for trace geometry
+
+prompt: |
+  Design a 4-layer PCB in KiCad that demonstrates 90 Ω differential routing
+  for USB 2.0 D+/D-.
+
+  Required:
+  - 4-layer board: F.Cu (signal), In1.Cu (GND plane), In2.Cu (PWR plane), B.Cu (signal)
+  - FR4, εr = 4.3, 1.6 mm total, 0.2 mm / 0.2 mm / 1.0 mm / 0.2 mm / 0.2 mm dielectric stackup
+  - Top layer: ESP32-S3 module (or USB-C receptacle) + supporting components
+  - Bottom layer: USB-C receptacle (or ESP32-S3) — opposite of top
+  - USB D+/D- traces on F.Cu at top of stack, but routed over In1.Cu (GND) reference
+  - 90 Ω differential impedance target: trace width 0.8 mm, trace gap 0.2 mm (verify with Saturn PCB Toolkit or similar; values must be reasonable for 1.6 mm 4-layer FR4)
+  - Length match within 150 mil (3.8 mm)
+  - 4 GND stitching vias along the USB pair (one at each end, two mid)
+  - ESD protection: TVS array on D+/D- (e.g. USBLC6-2SC6)
+  - Document stackup in the schematic as a label/comment
+
+  Constraints:
+  - File base: impedance-demo
+  - Use KiCad 9.0 (4-layer support stable)
+  - Document the stackup and impedance calculation in a `notes.md` file in the workspace
+  - Place outputs in:
+    ./impedance-demo.kicad_pro
+    ./impedance-demo.kicad_sch
+    ./impedance-demo.kicad_pcb
+    ./gerbers/
+    ./BOM.csv
+    ./notes.md
+
+  Verify ERC + DRC clean.
+
+inputs:
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace/
+
+outputs:
+  - impedance-demo.kicad_pro
+  - impedance-demo.kicad_sch
+  - impedance-demo.kicad_pcb
+  - gerbers/*.gtl
+  - gerbers/*.g1
+  - gerbers/*.g2
+  - gerbers/*.gbl
+  - gerbers/*.drl
+  - BOM.csv
+  - notes.md
+
+grading:
+  deterministic:
+    - name: schematic_erc_clean
+      command: "kicad-cli sch erc {kicad_sch} --exit-code"
+      pass: exit_code == 0
+    - name: pcb_drc_clean
+      command: "kicad-cli pcb drc {kicad_pcb} --exit-code"
+      pass: exit_code == 0
+    - name: four_layers
+      check: "grep -E '\\(F\\.Cu\\)|\\(In1\\.Cu\\)|\\(In2\\.Cu\\)|\\(B\\.Cu\\)' {kicad_pcb} | head -5"
+      pass: count >= 4
+    - name: notes_md_present
+      check: "[ -f notes.md ] && [ $(wc -l < notes.md) -ge 5 ]"
+      pass: size >= 5
+    - name: esd_in_bom
+      check: "grep -i 'usblc\\|tvs\\|esd' BOM.csv"
+      pass: present
+  llm_judge:
+    enabled: true
+    model: gpt-5.6-luna
+    prompt: |
+      Examine the impedance-controlled PCB. Verify:
+      1. stackup definition is reasonable (signal/GND/PWR/signal)
+      2. Differential pair trace width and spacing are plausible for 90 Ω
+         (typical 4-layer 1.6 mm FR4 with 0.2 mm dielectric: ~0.10 mm wide, ~0.15 mm gap
+         yields ~90 Ω — agent values should be in this neighborhood)
+      3. GND reference plane is intact under the pair (no splits)
+      4. Length matching is within 3.8 mm
+      5. ESD protection is on the connector side, not the IC side
+      6. Stackup notes match the actual layer count
+      Rate 1-5 for each.
+  weights:
+    deterministic: 0.4
+    llm_judge: 0.6
+
+passing_threshold: 0.7
+
+metadata:
+  area_of_test: [highspeed_routing, impedance_control, 4_layer_stackup, usb_2_0]
+  layer_count: 4
+  estimated_components: 8

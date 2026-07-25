@@ -1,0 +1,117 @@
+id: led-blinky-minimal
+title: "USB-C Powered LED Blinker (Minimal)"
+version: 1.0.0
+difficulty: 1
+estimated_minutes: 20
+category: kicad/beginner
+
+description: |
+  Build a minimal 2-layer PCB that blinks an LED at ~1 Hz using a 555 timer IC,
+  powered from a USB-C receptacle (5 V). The schematic, PCB layout, gerbers,
+  and BOM must be produced from scratch by the agent.
+
+functional_requirements:
+  - At least one LED visibly blinking at ~1 Hz (verified by RC timing on output)
+  - 5 V supply rail from USB-C VBUS
+  - 555 timer wired in astable mode (pin 3 → LED → GND with current-limit R)
+  - Footprint: 0805 for R/C, SOIC-8 for 555, manual USB-C 16-pin footprint
+  - 2-layer board, 1.6 mm thickness, 1 oz copper
+  - Power LED (always-on) indicating USB connected
+
+engineering_requirements:
+  - ERC clean (no errors; warnings allowed only with rationale)
+  - DRC clean (KiCad default rules; track clearance 0.2 mm, via drill 0.3 mm)
+  - Power trace width >= 0.5 mm for VBUS
+  - GND pour on bottom layer
+  - Silkscreen: refdes visible, board outline 50 mm x 30 mm (target)
+
+prompt: |
+  Design a 2-layer PCB in KiCad that blinks an LED at ~1 Hz.
+
+  Required:
+  - USB-C receptacle for 5 V power input (VBUS only, no data)
+  - 555 timer (SOIC-8) in astable mode, R1=1k, R2=47k, C=10uF, target ~1 Hz
+  - LED on pin 3 output, with 330 Ω current-limit resistor, 0805 footprint
+  - Power LED (always-on, green) on VBUS with 1 kΩ current-limit
+  - 2-layer board, 1.6 mm FR4, 1 oz copper
+  - Board outline approximately 50 mm x 30 mm
+  - Schematic and PCB layout, with GND pour on bottom
+  - Generate gerbers (RS-274X) and drill files
+
+  Constraints:
+  - Use KiCad 9.0 (or 8.0 if 9.0 unavailable)
+  - File base: led-blinky (project, schematic, pcb all share this name)
+  - Place outputs in this exact layout:
+    ./led-blinky.kicad_pro
+    ./led-blinky.kicad_sch
+    ./led-blinky.kicad_pcb
+    ./gerbers/ (containing all RS-274X and drill files)
+    ./BOM.csv
+  - Last commit message: "led-blinky: complete design"
+
+  Verify yourself before finishing:
+  - Run `kicad-cli sch erc led-blinky.kicad_sch --exit-code` ; exit 0 = pass
+  - Run `kicad-cli pcb drc led-blinky.kicad_pcb --exit-code` ; exit 0 = pass
+  - Run `kicad-cli pcb export gerbers led-blinky.kicad_pcb --output gerbers/`
+  - The gerbers/ directory must contain at least 4 .gtl/.gbl/.gts/.gbs files plus a drill file
+
+inputs:
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace/
+
+outputs:
+  - led-blinky.kicad_pro
+  - led-blinky.kicad_sch
+  - led-blinky.kicad_pcb
+  - gerbers/*.gtl
+  - gerbers/*.gbl
+  - gerbers/*.gts
+  - gerbers/*.gbs
+  - gerbers/*.drl
+  - BOM.csv
+
+grading:
+  deterministic:
+    - name: schematic_erc_clean
+      command: "kicad-cli sch erc {kicad_sch} --exit-code --format json"
+      pass: exit_code == 0
+    - name: pcb_drc_clean
+      command: "kicad-cli pcb drc {kicad_pcb} --exit-code --format json"
+      pass: exit_code == 0
+    - name: gerbers_exported
+      check: "ls gerbers/*.gtl gerbers/*.gbl gerbers/*.drl 2>&1 && [ $(ls gerbers/*.gtl gerbers/*.gbl gerbers/*.drl 2>/dev/null | wc -l) -ge 4 ]"
+      pass: count >= 4
+    - name: bom_csv_present
+      check: "[ -f BOM.csv ] && [ $(wc -l < BOM.csv) -ge 2 ]"
+      pass: size >= 2
+    - name: 555_ic_present
+      check: "kicad-cli sch erc {kicad_sch} --format json 2>/dev/null | jq '.components[] | select(.lib_id | contains(\"555\"))' | head -1"
+      pass: present
+    - name: usb_c_footprint
+      check: "grep -i 'usb.*c\\|type-c\\|USB_C' {kicad_pcb} | head -1"
+      pass: present
+    - name: vbus_trace_width
+      check: "grep -A2 'net 1 \"VBUS\"' {kicad_pcb} | head -1"
+      pass: trace_width >= 0.5 mm
+  llm_judge:
+    enabled: true
+    model: gpt-5.6-luna
+    prompt: |
+      Examine the PCB files and 555 wiring. Verify:
+      1. 555 astable wiring is correct (pin 2 to pin 6, R1 between VCC and pin 7, R2 between pin 7 and pin 6, C between pin 6 and GND)
+      2. Output LED on pin 3 has appropriate current-limit
+      3. Power LED has appropriate current-limit
+      4. Floating pins are not left dangling (pin 5 should have a 10 nF decoupling cap)
+      5. Schematic is readable, has power flags, net labels are clear
+      Rate 1-5 for each, and overall pass/fail.
+  weights:
+    deterministic: 0.7
+    llm_judge: 0.3
+
+passing_threshold: 0.7
+
+metadata:
+  area_of_test: [schematic_capture, pcb_layout, gerber_export, basic_passives]
+  layer_count: 2
+  estimated_components: 8

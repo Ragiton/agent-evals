@@ -1,0 +1,115 @@
+id: esp32-devboard-minimal
+title: "ESP32 DevBoard (Minimal)"
+version: 1.0.0
+difficulty: 3
+estimated_minutes: 45
+category: kicad/wireless
+
+description: |
+  Design a minimal ESP32-WROOM-32 dev board: USB-C power, USB-UART bridge
+  (CH340N or CP2102N), boot/reset buttons, antenna keepout, broken out GPIOs
+  on two header rows.
+
+functional_requirements:
+  - ESP32-WROOM-32E module (or similar) with antenna keepout
+  - USB-C receptacle for 5 V input
+  - 3.3 V LDO (e.g. AMS1117-3.3 or AP2112K-3.3)
+  - USB-UART bridge (CH340N in SOP-16 — no oscillator needed)
+  - USB D+/D- routed as 90 Ω differential pair (or straight pairs if possible)
+  - BOOT and RESET/EN buttons with 10 kΩ EN pullup
+  - Two header rows with all usable GPIOs broken out (2.54 mm pitch)
+  - Power LED + status LED on GPIO2
+
+engineering_requirements:
+  - ERC clean
+  - DRC clean
+  - Antenna keepout: no copper, no components, no traces under or within 6 mm of the ESP32 antenna
+  - Clearance around antenna: define prohibition zone in copper pour
+  - VBUS trace >= 1.0 mm
+  - LDO input/output caps: 10 µF input, 10 µF output (or 1 µF if AP2112)
+  - GND pour on bottom, stitched with vias around USB D+/D-
+
+prompt: |
+  Design a minimal ESP32-WROOM-32E dev board in KiCad.
+
+  Required:
+  - ESP32-WROOM-32E module (4-layer or 2-layer; pick 2-layer for simplicity)
+  - USB-C receptacle for 5 V power input
+  - 3.3 V LDO (AP2112K-3.3 in SOT-23-5)
+  - USB-UART bridge: CH340N (SOP-16) — no crystal needed
+  - USB D+/D- go to CH340N USB pins, then CH340N TX/RX to ESP32 GPIO3/GPIO1 (with 10 kΩ pullups)
+  - BOOT button (GPIO0 to GND on press)
+  - RESET button (EN to GND on press)
+  - EN pullup 10 kΩ to 3V3
+  - Two 1x19 pin headers (or 2x19) breaking out all usable GPIOs
+  - Power LED (3V3) via 1 kΩ
+  - Status LED on GPIO2 via 1 kΩ (optional bootloader pin)
+  - Antenna keepout: copper empty under module antenna, >= 6 mm radius
+
+  Constraints:
+  - File base: esp32-dev
+  - 2-layer board, 1.6 mm FR4
+  - Antenna keepout enforced via copper pour zone exclusion
+  - Use capability 0402 for resistors/caps, 0805 for LDO caps
+  - Place outputs in:
+    ./esp32-dev.kicad_pro
+    ./esp32-dev.kicad_sch
+    ./esp32-dev.kicad_pcb
+    ./gerbers/
+    ./BOM.csv
+
+  Verify ERC + DRC clean.
+
+inputs:
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace/
+
+outputs:
+  - esp32-dev.kicad_pro
+  - esp32-dev.kicad_sch
+  - esp32-dev.kicad_pcb
+  - gerbers/*.gtl
+  - gerbers/*.gbl
+  - gerbers/*.drl
+  - BOM.csv
+
+grading:
+  deterministic:
+    - name: schematic_erc_clean
+      command: "kicad-cli sch erc {kicad_sch} --exit-code"
+      pass: exit_code == 0
+    - name: pcb_drc_clean
+      command: "kicad-cli pcb drc {kicad_pcb} --exit-code"
+      pass: exit_code == 0
+    - name: gerbers_exported
+      check: "[ -d gerbers ] && [ $(ls gerbers/*.gtl 2>/dev/null | wc -l) -ge 1 ]"
+      pass: count >= 1
+    - name: esp32_module_in_bom
+      check: "grep -i 'esp32\\|wroom' BOM.csv"
+      pass: present
+    - name: ldo_in_bom
+      check: "grep -i 'ap2112\\|ams1117\\|ldo' BOM.csv"
+      pass: present
+  llm_judge:
+    enabled: true
+    model: gpt-5.6-luna
+    prompt: |
+      Examine the ESP32 devboard. Verify:
+      1. ESP32 antenna keepout is honored (no copper under antenna)
+      2. USB D+/D- are routed as a differential pair (matched length if possible)
+      3. EN has a 10 kΩ pullup, not a pulldown
+      4. BOOT button pulls GPIO0 to GND only when pressed (no permanent pulldown)
+      5. Status LED on GPIO2 (bootloader pin) is documented as "pin sensitive to boot mode"
+      6. All ESP32 GPIOs are broken out to headers
+      Rate 1-5 for each.
+  weights:
+    deterministic: 0.5
+    llm_judge: 0.5
+
+passing_threshold: 0.7
+
+metadata:
+  area_of_test: [wireless_module, usb_uart, antenna_keepout, boot_logic]
+  layer_count: 2
+  estimated_components: 35
