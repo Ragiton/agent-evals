@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-25T22:13:03.429964Z",
+  "generated_at": "2026-07-25T22:16:15.929573Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -299,6 +299,22 @@
       "finished_at": "2026-07-25T22:11:00Z",
       "graded_at": null,
       "exit_code": 124,
+      "deterministic": [],
+      "deterministic_score": null,
+      "final_score": null,
+      "passed": null,
+      "llm_judge": null,
+      "cross_grades": []
+    },
+    {
+      "run_id": "run-002-led-blinky-cursor",
+      "spec_id": "led-blinky-minimal",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "started_at": "2026-07-25T22:14:00Z",
+      "finished_at": null,
+      "graded_at": null,
+      "exit_code": null,
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
