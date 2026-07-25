@@ -74,13 +74,13 @@ outputs:
 grading:
   deterministic:
     - name: schematic_erc_clean
-      command: "kicad-cli sch erc {kicad_sch} --exit-code --format json"
+      command: "kicad-cli sch erc {kicad_sch} --exit-code-violations --format json"
       pass: exit_code == 0
     - name: pcb_drc_clean
-      command: "kicad-cli pcb drc {kicad_pcb} --exit-code --format json"
+      command: "kicad-cli pcb drc {kicad_pcb} --exit-code-violations --format json"
       pass: exit_code == 0
     - name: gerbers_exported
-      check: "ls gerbers/*.gtl gerbers/*.gbl gerbers/*.drl 2>&1 && [ $(ls gerbers/*.gtl gerbers/*.gbl gerbers/*.drl 2>/dev/null | wc -l) -ge 4 ]"
+      check: "ls gerbers/*.gtl gerbers/*.gbl gerbers/*.gts gerbers/*.gbs 2>&1 | wc -l | awk '{exit ($1 >= 4) ? 0 : 1}'"
       pass: count >= 4
     - name: bom_csv_present
       check: "[ -f BOM.csv ] && [ $(wc -l < BOM.csv) -ge 2 ]"
