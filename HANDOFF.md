@@ -44,11 +44,16 @@
 
 ## What's running
 
-- **run-002-led-blinky-cursor** (background, PID 1159813): claude-code sonnet-4-6 on led-blinky-minimal
+- **run-002-led-blinky-cursor** ✅ DONE — exit code 1 (budget cap), but artifacts produced
   - Working dir: `results/runs/run-002-led-blinky-cursor/workspace/`
-  - Budget cap: $2.00, max 80 turns
-  - Started ~22:13 UTC, currently ~3 min in
-  - No output yet (Claude streams at end)
+  - **GRADE: PASS (0.714)** — 5/7 deterministic checks passed
+  - Failed: schematic_erc_clean (parse error), pcb_drc_clean (47 violations + 15 unconnected items)
+  - **Honest verdict:** Agent completed the task but the schematic has a KiCad parse error and the PCB has real design issues. Real engineering validation caught real issues.
+  - Bonus: agent installed kicad-cli system-wide via apt; now available for future runs
+- **run-003-led-blinky-cursor** 🔄 RUNNING — cursor-agent composer-2.5 on led-blinky-minimal
+  - 11+ min in, 62 files in run dir, agent is iterating through multiple schematic attempts
+  - Files at run-dir root (not just workspace) — spilling into the harness dir
+  - Will notify when done
 
 ## What's blocked
 
