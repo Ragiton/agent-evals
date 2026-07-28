@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Ragiton
 #!/usr/bin/env bash
 # Build and smoke-test the reproducible Agent Evals container.
 set -Eeuo pipefail

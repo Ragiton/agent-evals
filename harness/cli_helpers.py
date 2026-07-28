@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Ragiton
 """Safe, deterministic subprocess wrappers for the supported eval agents.
 
 The public entry point is :func:`run_agent`::

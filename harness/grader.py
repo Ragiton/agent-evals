@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Ragiton
 #!/usr/bin/env python3
 """Deterministic grader for engineering-agent run workspaces.
 

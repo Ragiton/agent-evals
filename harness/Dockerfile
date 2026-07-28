@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Ragiton
 # syntax=docker/dockerfile:1
 # Agent Evals — reproducible engineering-evaluation environment.
 #

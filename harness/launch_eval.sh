@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Ragiton
 #!/usr/bin/env bash
 # Launch one bounded Claude Code engineering eval in an isolated workspace.
 # Usage: launch_eval.sh <spec.yaml> <run-id> [skill]

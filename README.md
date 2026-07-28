@@ -1,6 +1,11 @@
 # Agent Evals
 
+[![License: GPL v3+](https://img.shields.io/badge/License-GPLv3+-blue.svg)](LICENSE)
+[![Website](https://img.shields.io/badge/website-ragiton.github.io%2Fagent--evals-blue)](https://ragiton.github.io/agent-evals/)
+
 Personal eval harness for engineering AI agents. Specification is the contract; run is the experiment; `results.json` is the truth.
+
+Released under **GPL-3.0-or-later**. Any derivative work that you distribute must remain under the same license, with source available — see [`LICENSE`](LICENSE).
 
 ## Layout
 

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Ragiton
 #!/usr/bin/env bash
 # Dispatch the common harness commands while keeping arbitrary CLI commands
 # available for ad-hoc KiCad/ngspice/FreeCAD checks.
