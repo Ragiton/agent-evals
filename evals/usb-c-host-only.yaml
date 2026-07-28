@@ -1,0 +1,268 @@
+id: usb-c-host-only
+title: "USB-C USB 2.0 Host Receptacle (DFP / Source Only)"
+description: |
+  Design a two-layer USB-C USB 2.0 host-only carrier. The receptacle is a DFP
+  source: it supplies protected 5 V on VBUS, advertises source current with Rp
+  on both CC pins, and routes USB D+/D- through ESD protection to a host header.
+  This is intentionally not a sink/UFP design. All acceptance checks are
+  deterministic and executable without visual interpretation.
+requirements:
+  functional:
+    components:
+      J1:
+        value: USB_C_Receptacle_USB2.0_16P
+        symbol: Connector:USB_C_Receptacle_USB2.0_16P
+        footprint: Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal
+        role: USB-C host receptacle with duplicated USB2/VBUS pins and shield pads
+      J2:
+        value: USB_HOST_HEADER
+        symbol: Connector_Generic:Conn_01x04
+        footprint: Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical
+        role: host/controller header, pins VBUS GND USB_DP USB_DM
+      R1:
+        value: 56k_1pct
+        symbol: Device:R
+        footprint: Resistor_SMD:R_0402_1005Metric
+        role: Rp pull-up from CC1 to HOST_5V
+      R2:
+        value: 56k_1pct
+        symbol: Device:R
+        footprint: Resistor_SMD:R_0402_1005Metric
+        role: Rp pull-up from CC2 to HOST_5V
+      U1:
+        value: USBLC6-2SC6
+        symbol: Interface_USB:USBLC6-2SC6
+        footprint: Package_DFN_QFN:DFN-6-1EP_1.6x1.6mm_P0.5mm_EP0.95x1.0mm
+        role: low-capacitance USB2 ESD array on the connector side
+      U2:
+        value: AP2331
+        symbol: Power_Management:AP2331
+        footprint: Package_TO_SOT_SMD:SOT-23-5
+        role: current-limited 5 V source/load switch
+      D1:
+        value: SMBJ5.0A
+        symbol: Device:D_TVS
+        footprint: Diode_SMD:D_SMA
+        role: VBUS TVS protection
+      F1:
+        value: 1A_RESETTABLE_FUSE
+        symbol: Device:Polyfuse
+        footprint: Fuse:Fuse_1206_3216Metric
+        role: source over-current protection
+      C1:
+        value: 100nF
+        symbol: Device:C
+        footprint: Capacitor_SMD:C_0402_1005Metric
+        role: high-frequency VBUS bypass
+      C2:
+        value: 10uF_10V
+        symbol: Device:C
+        footprint: Capacitor_SMD:C_0805_2012Metric
+        role: VBUS bulk decoupling
+      H1:
+        value: HOST_5V_INPUT
+        symbol: Connector_Generic:Conn_01x02
+        footprint: Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical
+        role: protected 5 V source input
+    nets:
+      - name: HOST_5V_RAW
+        connections: H1.1, F1.1
+      - name: HOST_5V
+        connections: F1.2, U2.IN, U2.EN, R1.1, R2.1
+      - name: VBUS
+        connections: J1.VBUS, U2.OUT, D1.A, C1.1, C2.1, J2.1
+      - name: GND
+        connections: J1.GND, J1.SHIELD, U1.GND, U2.GND, D1.K, C1.2, C2.2, H1.2, J2.2
+      - name: CC1
+        connections: J1.CC1, R1.2
+      - name: CC2
+        connections: J1.CC2, R2.2
+      - name: USB_DP
+        connections: J1.A6, J1.B6, U1.DP, J2.3
+      - name: USB_DM
+        connections: J1.A7, J1.B7, U1.DM, J2.4
+    behavior:
+      - J1 is a DFP/source. R1 and R2 are Rp pull-ups from CC1 and CC2 to HOST_5V; no 5.1k Rd pulldowns are permitted.
+      - All A4/B4/A9/B9 VBUS contacts are VBUS and all connector ground contacts and shield pads are GND.
+      - A6/B6 are combined as USB_DP and A7/B7 as USB_DM. U1 is between the connector and J2 for both data nets.
+      - U2 current-limits HOST_5V into VBUS; D1, C1, and C2 protect and decouple the source rail.
+    constraints:
+      source:
+        nominal_voltage_v: 5.0
+        tolerance_percent: 5
+        advertised_typec_current: default_usb
+        switch_current_limit_a: 1.0
+      usb2:
+        data_rate_mbps: 480
+        vbus_max_current_a: 0.5
+      protection:
+        tvs_standoff_voltage_v: 5.0
+        fuse_hold_current_a: 1.0
+  engineering:
+    - Use exactly two copper layers, F.Cu and B.Cu, on 1.6 mm FR-4, with an approximately 30 mm by 20 mm closed Edge.Cuts outline.
+    - Use a filled B.Cu GND zone, keep copper inside the outline, and route VBUS/source copper at least 1.0 mm wide or as an equivalent pour.
+    - Route USB_DP and USB_DM as a short, parallel, same-layer pair with a declared width/spacing; place U1 adjacent to J1 and avoid stubs.
+    - Keep CC traces short and away from VBUS protection copper. Put receptacle shell/mounting pads on GND and label VBUS, GND, CC1, CC2, USB_DP, and USB_DM.
+    - Assign real footprints, annotate the schematic, and produce non-empty BOM.csv, design-notes.md, Gerbers, drill output, and a job file.
+    - KiCad 9 ERC and DRC must return zero violations; all required manufacturing files must be non-empty.
+grading:
+  deterministic:
+    - name: required_project_files
+      description: The primary project, schematic, PCB, BOM, and design notes exist and are non-empty.
+      command: >-
+        test -s ./usb-c-host-only.kicad_pro && test -s ./usb-c-host-only.kicad_sch &&
+        test -s ./usb-c-host-only.kicad_pcb && test -s ./BOM.csv && test -s ./design-notes.md
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: schematic_erc_clean
+      description: KiCad ERC reports no violations and returns zero.
+      command: >-
+        mkdir -p ./reports && kicad-cli sch erc ./usb-c-host-only.kicad_sch
+        --format json --output ./reports/usb-c-host-only-erc.json --exit-code-violations &&
+        test -s ./reports/usb-c-host-only-erc.json
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: pcb_drc_clean
+      description: KiCad DRC reports no violations and returns zero.
+      command: >-
+        mkdir -p ./reports && kicad-cli pcb drc ./usb-c-host-only.kicad_pcb
+        --format json --output ./reports/usb-c-host-only-drc.json --exit-code-violations &&
+        test -s ./reports/usb-c-host-only-drc.json
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: gerber_export_succeeds
+      description: Export copper, mask, silk, paste, and outline layers.
+      command: >-
+        rm -rf ./gerbers && mkdir -p ./gerbers && kicad-cli pcb export gerbers
+        ./usb-c-host-only.kicad_pcb --output ./gerbers
+        --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,F.Paste,B.Paste,Edge.Cuts --no-x2
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: drill_export_succeeds
+      description: Excellon drill export returns zero and writes a non-empty file.
+      command: >-
+        kicad-cli pcb export drill ./usb-c-host-only.kicad_pcb
+        --output ./gerbers --format excellon && test -s ./gerbers/usb-c-host-only.drl
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_fabrication_outputs_present
+      description: Required copper, mask, silk, paste, outline, drill, and job files are non-empty.
+      command: >-
+        for suffix in gtl gbl gts gbs gto gbo gtp gbp gm1 drl gbrjob; do
+          test "$(find ./gerbers -maxdepth 1 -type f -name "*.$suffix" -size +0c | wc -l)" -ge 1 || exit 1;
+        done
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: usb_c_host_symbol_and_footprint
+      description: The schematic and PCB contain the USB-C receptacle and mounting/shield implementation.
+      command: >-
+        grep -Eiq 'USB_C_Receptacle_USB2\.0_16P|USB4105|USB.?C' ./usb-c-host-only.kicad_sch &&
+        grep -Eiq 'USB_C_Receptacle|USB4105|USB.?C' ./usb-c-host-only.kicad_pcb &&
+        grep -Eiq 'MountingHole|mount|shield|S1|S2|S3|S4' ./usb-c-host-only.kicad_pcb
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: host_cc_rp_configuration_not_sink_rd
+      description: Both CC pins use source Rp pull-ups and neither uses a sink Rd pulldown.
+      command: >-
+        grep -Eiq 'CC1' ./usb-c-host-only.kicad_sch && grep -Eiq 'CC2' ./usb-c-host-only.kicad_sch &&
+        test "$(grep -Eio '56.?k' ./usb-c-host-only.kicad_sch | wc -l)" -ge 2 &&
+        grep -Eiq 'Rp|DFP|HOST_5V' ./usb-c-host-only.kicad_sch &&
+        ! grep -Eiq '5\.1.?k|5k1|Rd|UFP|sink|pull.?down' ./usb-c-host-only.kicad_sch
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: vbus_protection_and_decoupling
+      description: VBUS source protection, current limiting, TVS, and decoupling are present.
+      command: >-
+        grep -Eiq 'HOST_5V_RAW|HOST_5V|VBUS' ./usb-c-host-only.kicad_sch &&
+        grep -Eiq 'AP2331|TPS2553|current.?limit|fuse|polyfuse' ./usb-c-host-only.kicad_sch &&
+        grep -Eiq 'SMBJ5|TVS|over.?voltage' ./usb-c-host-only.kicad_sch &&
+        grep -Eiq '100.?n|100n' ./usb-c-host-only.kicad_sch && grep -Eiq '10.?u|10u' ./usb-c-host-only.kicad_sch &&
+        grep -Eiq '5.?V|500.?mA|1.?A' ./BOM.csv ./design-notes.md ./usb-c-host-only.kicad_sch
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: usb_data_orientation_and_esd
+      description: USB-C A/B data pins are combined, protected, and exposed to the host header.
+      command: >-
+        for token in USB_DP USB_DM A6 B6 A7 B7 USBLC6 ESD; do
+          grep -Eiq "$token" ./usb-c-host-only.kicad_sch || exit 1;
+        done &&
+        grep -Eiq 'USB_DP|USB_DM' ./usb-c-host-only.kicad_pcb
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: power_data_nets_and_board_geometry
+      description: PCB text and structure expose all required nets, two layers, plane, outline, and >=1 mm copper.
+      command: >-
+        for token in HOST_5V_RAW HOST_5V VBUS GND CC1 CC2 USB_DP USB_DM F.Cu B.Cu Edge.Cuts; do
+          grep -Eiq "$token" ./usb-c-host-only.kicad_pcb || exit 1;
+        done &&
+        grep -Eq '(^|[^0-9])(30|20)(\.0+)?([^0-9]|$)' ./usb-c-host-only.kicad_pcb &&
+        python3 -c 'import pathlib,re; t=pathlib.Path("./usb-c-host-only.kicad_pcb").read_text(errors="replace"); assert any(float(v) >= 1.0 for v in re.findall(r"\(width\s+([0-9.]+)\)"); assert "(zone" in t; assert re.search(r"\(segment\b",t)'
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+  llm_judge:
+    enabled: false
+  weights:
+    deterministic: 1.0
+    llm_judge: 0.0
+prompt: &eval_prompt |
+    Create a complete KiCad 9 project in the current workspace for a USB-C USB 2.0
+    host-only (DFP/source) carrier. Do not provide prose only: create all files,
+    run the checks below, and repair failures. This is not a UFP/sink design.
+
+    Electrical requirements:
+    - Use J1=USB_C_Receptacle_USB2.0_16P with footprint
+      Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.
+      Tie A4/B4/A9/B9 to VBUS, all ground contacts and shield/mounting pads to
+      GND, A6+B6 to USB_DP, and A7+B7 to USB_DM.
+    - Use R1 and R2=56k 1% Rp pull-ups from CC1 and CC2 to HOST_5V. This is the
+      DFP/source advertisement; do not use 5.1k Rd pulldowns or describe it as a
+      sink/UFP.
+    - Bring a 5.0 V +/-5% source into H1, route HOST_5V_RAW through F1=1A
+      resettable fuse to HOST_5V, then use U2=AP2331 (or an equivalent
+      current-limited source switch, 1 A limit) from HOST_5V to VBUS. Rp=56k
+      advertises the USB Type-C default source current (500 mA); do not claim
+      a 3 A source. Add D1=SMBJ5.0A (5 V TVS), C1=100nF, and C2=10uF from
+      VBUS to GND.
+    - Place U1=USBLC6-2SC6 between J1 and a 1x04 J2 host header carrying VBUS,
+      GND, USB_DP, and USB_DM. Assign suitable footprints and create BOM.csv and
+      design-notes.md with source-current and protection ratings.
+
+    PCB requirements:
+    - Use exactly F.Cu and B.Cu on 1.6 mm FR-4, a closed approximately 30 mm x
+      20 mm Edge.Cuts outline, and a filled B.Cu GND zone. Use >=1.0 mm VBUS
+      copper. Route USB_DP/USB_DM as a short same-layer parallel pair with
+      declared 0.20 mm width and 0.20 mm spacing, put U1 at J1, and keep CC
+      traces short. Add readable connector/net labels.
+    - Generate the fabrication files in ./gerbers/.
+
+    Run these commands from the project directory and fix any failures:
+      kicad-cli sch erc ./usb-c-host-only.kicad_sch --format json --output ./reports/usb-c-host-only-erc.json --exit-code-violations
+      kicad-cli pcb drc ./usb-c-host-only.kicad_pcb --format json --output ./reports/usb-c-host-only-drc.json --exit-code-violations
+      kicad-cli pcb export gerbers ./usb-c-host-only.kicad_pcb --output ./gerbers --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,F.Paste,B.Paste,Edge.Cuts --no-x2
+      kicad-cli pcb export drill ./usb-c-host-only.kicad_pcb --output ./gerbers --format excellon
+    ERC, DRC, Gerber export, and drill export must return status 0. Leave the
+    complete artifacts in the workspace; do not merely describe them.
+inputs:
+  prompt: *eval_prompt
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace
+outputs:
+  - ./usb-c-host-only.kicad_pro
+  - ./usb-c-host-only.kicad_sch
+  - ./usb-c-host-only.kicad_pcb
+  - ./BOM.csv
+  - ./design-notes.md
+  - ./gerbers/*.gtl
+  - ./gerbers/*.gbl
+  - ./gerbers/*.gts
+  - ./gerbers/*.gbs
+  - ./gerbers/*.gto
+  - ./gerbers/*.gbo
+  - ./gerbers/*.gtp
+  - ./gerbers/*.gbp
+  - ./gerbers/*.gm1
+  - ./gerbers/*.drl
+  - ./gerbers/*.gbrjob
+difficulty: 3
+time_budget_minutes: 40

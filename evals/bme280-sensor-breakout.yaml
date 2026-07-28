@@ -1,0 +1,204 @@
+id: bme280-sensor-breakout
+title: "BME280 3V3 I2C Sensor Breakout"
+description: |
+  Design a compact two-layer KiCad breakout board for a Bosch BME280 temperature,
+  pressure, and humidity sensor. The board exposes 3V3, GND, SDA, and SCL on a
+  four-pin header, uses 3V3-native I2C pull-ups and local decoupling, and has no
+  regulator or level shifter. The deliverable is a complete, parseable KiCad
+  project with an annotated schematic, routed PCB, manufacturing Gerbers and
+  drill output, and a BOM at the exact artifact paths listed below.
+requirements:
+  functional:
+    components:
+      U1:
+        value: BME280
+        footprint: Package_LGA:Bosch_LGA-8_2.5x2.5mm_P0.65mm
+        role: 3V3-native temperature, pressure, and humidity sensor
+      J1:
+        value: Conn_01x04_Pin
+        footprint: Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical
+        role: host interface header, pin order 3V3 GND SDA SCL
+      R1:
+        value: 4.7k
+        footprint: Resistor_SMD:R_0603_1608Metric
+        role: SDA pull-up to 3V3
+      R2:
+        value: 4.7k
+        footprint: Resistor_SMD:R_0603_1608Metric
+        role: SCL pull-up to 3V3
+      C1:
+        value: 100nF
+        footprint: Capacitor_SMD:C_0402_1005Metric
+        role: local VDD decoupling to GND
+      C2:
+        value: 1uF
+        footprint: Capacitor_SMD:C_0402_1005Metric
+        role: local VDDIO bulk decoupling to GND
+    nets:
+      - name: 3V3
+        connections: J1.1, U1.VDD, U1.VDDIO, R1.1, R2.1, C1.1, C2.1, U1.CSB
+      - name: GND
+        connections: J1.2, U1.GND, U1.SDO, C1.2, C2.2
+      - name: SDA
+        connections: J1.3, U1.SDA, R1.2
+      - name: SCL
+        connections: J1.4, U1.SCL, R2.2
+    behavior:
+      - U1 operates from 3V3 only; the board has no voltage regulator, translator, or other 5 V circuitry.
+      - R1 and R2 are independent 4.7k pull-ups from SDA and SCL to 3V3.
+      - C1 is 100nF from VDD to GND and C2 is 1uF from VDDIO to GND, placed adjacent to U1.
+      - U1 SDO is tied to GND for the 0x76 I2C address and CSB is tied to 3V3 to select I2C mode.
+  engineering:
+    board:
+      - 2 copper layers only: F.Cu and B.Cu, with an exact 25.0 mm by 15.0 mm Edge.Cuts rectangle.
+      - 1.6 mm FR-4 board thickness and 1 oz copper are declared in the PCB stackup or project settings.
+      - Include a continuous GND copper zone on B.Cu and keep copper inside Edge.Cuts.
+    layout:
+      - U1, R1, R2, C1, and C2 are on the top side; J1 is a top-entry through-hole header with all four pads accessible.
+      - Keep C1 and C2 immediately adjacent to the BME280 supply pins, keep SDA/SCL routes short, and use at least 0.20 mm clearance.
+      - Mark the BME280 pin-1 corner and label the header pins 3V3, GND, SDA, and SCL on F.SilkS. Place the board name on silkscreen.
+      - Do not use a regulator, level shifter, or any unlisted active component.
+    verification:
+      - The schematic and PCB must be parseable by KiCad 9.0.8, ERC and DRC must have zero violations, and all generated manufacturing files must be non-empty.
+grading:
+  deterministic:
+    - name: required_artifacts_present
+      description: Required KiCad project, schematic, PCB, and BOM files exist at the exact paths.
+      command: >-
+        test -f ./bme280-sensor-breakout.kicad_pro &&
+        test -f ./bme280-sensor-breakout.kicad_sch &&
+        test -f ./bme280-sensor-breakout.kicad_pcb &&
+        test -s ./BOM.csv
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: schematic_erc_clean
+      description: KiCad ERC completes successfully and reports no violations.
+      command: >-
+        mkdir -p ./reports &&
+        kicad-cli sch erc ./bme280-sensor-breakout.kicad_sch
+        --format json --output ./reports/bme280-sensor-breakout-erc.json
+        --exit-code-violations
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: pcb_drc_clean
+      description: KiCad DRC completes successfully and reports no violations.
+      command: >-
+        mkdir -p ./reports &&
+        kicad-cli pcb drc ./bme280-sensor-breakout.kicad_pcb
+        --format json --output ./reports/bme280-sensor-breakout-drc.json
+        --exit-code-violations
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: gerber_export_succeeds
+      description: Gerber export for both copper, soldermask, silkscreen, and outline layers exits zero.
+      command: >-
+        mkdir -p ./gerbers &&
+        kicad-cli pcb export gerbers ./bme280-sensor-breakout.kicad_pcb
+        --output ./gerbers
+        --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,Edge.Cuts
+        --no-x2
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: drill_export_succeeds
+      description: Excellon drill export exits zero and writes the required drill file.
+      command: >-
+        mkdir -p ./gerbers &&
+        kicad-cli pcb export drill ./bme280-sensor-breakout.kicad_pcb
+        --output ./gerbers --format excellon &&
+        test -s ./gerbers/bme280-sensor-breakout.drl
+      expected_exit_code: 0
+      pass: "exit_code == 0 and file_exists('./gerbers/bme280-sensor-breakout.drl')"
+    - name: required_gerbers_and_drill_present
+      description: At least four required Gerber layers and one drill file are non-empty.
+      command: >-
+        test "$(find ./gerbers -maxdepth 1 -type f
+        \( -name '*.gtl' -o -name '*.gbl' -o -name '*.gts' -o -name '*.gbs' \)
+        -size +0c | wc -l)" -ge 4 &&
+        test "$(find ./gerbers -maxdepth 1 -type f -name '*.drl' -size +0c | wc -l)" -ge 1
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_footprints_and_two_layers
+      description: PCB text contains the specified sensor, header, passive footprint families, and both copper layer declarations.
+      command: >-
+        for token in Bosch_LGA PinHeader_1x04 R_0603 C_0402; do
+          grep -Eiq "$token" ./bme280-sensor-breakout.kicad_pcb || exit 1;
+        done &&
+        grep -Eq 'F\.Cu|B\.Cu' ./bme280-sensor-breakout.kicad_pcb
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_named_nets_present
+      description: PCB contains the 3V3 power and four required interface nets.
+      command: >-
+        for token in 3V3 GND SDA SCL; do
+          grep -Eiq "\"$token\"" ./bme280-sensor-breakout.kicad_pcb || exit 1;
+        done
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: bom_contains_required_values_and_no_power_conversion
+      description: BOM includes the BME280, two 4.7k pull-ups, both capacitors, and no regulator or level shifter.
+      command: >-
+        test -s ./BOM.csv &&
+        grep -Eiq 'BME280' ./BOM.csv &&
+        test "$(grep -Eio '4\.7k|4\.7 k' ./BOM.csv | wc -l)" -ge 2 &&
+        grep -Eiq '100nF|100n' ./BOM.csv &&
+        grep -Eiq '1uF|1u' ./BOM.csv &&
+        ! grep -Eiq 'regulator|level.?shift|LDO|translator' ./BOM.csv
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: outline_and_ground_zone_present
+      description: PCB includes an Edge.Cuts outline and a copper zone for the B.Cu ground plane.
+      command: >-
+        grep -q 'Edge\.Cuts' ./bme280-sensor-breakout.kicad_pcb &&
+        grep -Eq '\(zone |B\.Cu' ./bme280-sensor-breakout.kicad_pcb
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+prompt: &eval_prompt |
+    Create a complete KiCad 9.0 project for a compact BME280 I2C breakout in the current working directory.
+
+    Deliver exactly these primary files and paths:
+      ./bme280-sensor-breakout.kicad_pro
+      ./bme280-sensor-breakout.kicad_sch
+      ./bme280-sensor-breakout.kicad_pcb
+      ./BOM.csv
+      ./gerbers/ (manufacturing Gerbers and drill output)
+
+    Electrical design:
+    - Use U1, Bosch BME280, with footprint Package_LGA:Bosch_LGA-8_2.5x2.5mm_P0.65mm. This is a 3V3-native sensor; do not add a regulator, level shifter, translator, or 5 V circuit.
+    - Use J1, value Conn_01x04_Pin, with footprint Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical. The pin order must be pin 1=3V3, pin 2=GND, pin 3=SDA, pin 4=SCL.
+    - Connect U1 VDD and VDDIO to 3V3 and U1 grounds to GND. Tie SDO to GND for I2C address 0x76 and CSB to 3V3 for I2C mode. Connect U1 SDA to SDA and U1 SCL to SCL.
+    - Use R1=4.7k from 3V3 to SDA and R2=4.7k from 3V3 to SCL, both with footprint Resistor_SMD:R_0603_1608Metric.
+    - Use C1=100nF from VDD to GND and C2=1uF from VDDIO to GND, both with footprint Capacitor_SMD:C_0402_1005Metric. Place both close to U1.
+
+    PCB and manufacturing constraints:
+    - Use exactly two copper layers, F.Cu and B.Cu, on 1.6 mm FR-4 with 1 oz copper. Draw an exact 25.0 mm x 15.0 mm rectangular Edge.Cuts outline.
+    - Place U1 and all SMT parts on the top side. Use the stated top-entry through-hole header at an edge with all four pads accessible. Use at least 0.20 mm clearance and add a filled GND zone on B.Cu.
+    - Put a pin-1 marker at the BME280 package, and put readable 3V3, GND, SDA, SCL labels plus the board name on F.SilkS. Keep the sensor decoupling and I2C routes compact.
+    - Annotate the schematic, assign the stated footprints, include explicit power intent, and route every required net without dangling connections.
+
+    Before finishing, run these commands from the project directory and fix failures:
+      mkdir -p ./reports ./gerbers
+      kicad-cli sch erc ./bme280-sensor-breakout.kicad_sch --format json --output ./reports/bme280-sensor-breakout-erc.json --exit-code-violations
+      kicad-cli pcb drc ./bme280-sensor-breakout.kicad_pcb --format json --output ./reports/bme280-sensor-breakout-drc.json --exit-code-violations
+      kicad-cli pcb export gerbers ./bme280-sensor-breakout.kicad_pcb --output ./gerbers --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,Edge.Cuts --no-x2
+      kicad-cli pcb export drill ./bme280-sensor-breakout.kicad_pcb --output ./gerbers --format excellon
+    ERC, DRC, Gerber export, and drill export must each exit with status 0. Leave the complete files in the current directory; do not merely describe them.
+inputs:
+  prompt: *eval_prompt
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace
+outputs:
+  - ./bme280-sensor-breakout.kicad_pro
+  - ./bme280-sensor-breakout.kicad_sch
+  - ./bme280-sensor-breakout.kicad_pcb
+  - ./BOM.csv
+  - ./gerbers/*.gtl
+  - ./gerbers/*.gbl
+  - ./gerbers/*.gts
+  - ./gerbers/*.gbs
+  - ./gerbers/*.gto
+  - ./gerbers/*.gbo
+  - ./gerbers/*.gm1
+  - ./gerbers/*.drl
+difficulty: 3
+time_budget_minutes: 60

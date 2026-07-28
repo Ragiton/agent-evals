@@ -2,7 +2,8 @@
 results/runs/
 results/raw/
 results/*.tmp
-**/__pycache__/
+node_modules/
+__pycache__/
 *.pyc
 
 # Editor

@@ -1,0 +1,235 @@
+id: led-blinky-minimal
+title: "USB-C Powered 555 Astable LED Blinky"
+description: |
+  Design a small, two-layer KiCad board that accepts 5 V from a USB-C receptacle
+  and drives a visible LED from a 555 timer in astable mode at approximately 1 Hz.
+  The deliverable is a complete, parseable KiCad project with an annotated
+  schematic, routed PCB, manufacturing Gerbers and drill output, and a BOM. The
+  design must be reproducible in an unattended KiCad 9 environment and must use
+  the exact artifact paths listed below.
+requirements:
+  functional:
+    components:
+      J1:
+        value: USB_C_Receptacle_USB2.0_16P
+        footprint: Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal
+        role: 5 V USB-C power input
+      U1:
+        value: NE555D
+        footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+        role: astable timer
+      R1:
+        value: 1k
+        footprint: Resistor_SMD:R_0805_2012Metric
+        role: VBUS to DISCHARGE timing resistor
+      R2:
+        value: 47k
+        footprint: Resistor_SMD:R_0805_2012Metric
+        role: DISCHARGE to TIMING timing resistor
+      C1:
+        value: 10uF
+        footprint: Capacitor_SMD:C_0805_2012Metric
+        role: TIMING to GND timing capacitor
+      R3:
+        value: 330R
+        footprint: Resistor_SMD:R_0805_2012Metric
+        role: blinking LED current limiter
+      D1:
+        value: LED_RED
+        footprint: LED_SMD:LED_0805_2012Metric
+        role: blinking indicator, driven from U1 pin 3 through R3
+      R4:
+        value: 1k
+        footprint: Resistor_SMD:R_0805_2012Metric
+        role: power indicator current limiter
+      D2:
+        value: LED_GREEN
+        footprint: LED_SMD:LED_0805_2012Metric
+        role: always-on VBUS indicator
+      C2:
+        value: 100nF
+        footprint: Capacitor_SMD:C_0805_2012Metric
+        role: U1 VCC decoupling
+      C3:
+        value: 10nF
+        footprint: Capacitor_SMD:C_0805_2012Metric
+        role: U1 CONTROL-pin filter
+      R5:
+        value: 5.1k
+        footprint: Resistor_SMD:R_0805_2012Metric
+        role: USB-C CC1 pull-down
+      R6:
+        value: 5.1k
+        footprint: Resistor_SMD:R_0805_2012Metric
+        role: USB-C CC2 pull-down
+    nets:
+      - name: VBUS
+        connections: J1.VBUS, U1.8_VCC, U1.4_RESET, R1.1, R4.1, C2.1
+      - name: GND
+        connections: J1.GND, U1.1_GND, C1.2, C2.2, C3.2, D1.K, D2.K, R5.2, R6.2
+      - name: DISCHARGE
+        connections: U1.7_DISCHARGE, R1.2, R2.1
+      - name: TIMING
+        connections: U1.2_TRIGGER, U1.6_THRESHOLD, R2.2, C1.1
+      - name: LED_DRIVE
+        connections: U1.3_OUTPUT, R3.1
+      - name: LED_K
+        connections: R3.2, D1.A
+      - name: PWR_LED_A
+        connections: R4.2, D2.A
+      - name: CTRL_FILTER
+        connections: U1.5_CONTROL, C3.1
+      - name: CC1
+        connections: J1.CC1, R5.1
+      - name: CC2
+        connections: J1.CC2, R6.1
+    behavior:
+      - U1 is wired as an astable oscillator: pin 2 and pin 6 share TIMING; pin 7 is DISCHARGE; pin 3 is LED_DRIVE.
+      - R1, R2, and C1 use 1k, 47k, and 10uF respectively, yielding an approximately 1 Hz blink rate.
+      - D1 is the blinking red LED and D2 is an always-on green power LED; each LED has its own series resistor.
+      - USB-C VBUS pins are paralleled as VBUS, USB-C ground pins are GND, and CC1/CC2 each have a 5.1k Rd to GND. USB D+/D- pins are explicitly no-connect.
+  engineering:
+    board:
+      - 2 copper layers only: F.Cu and B.Cu, with a 50.0 mm by 30.0 mm Edge.Cuts rectangle.
+      - 1.6 mm FR-4 board thickness and 1 oz copper are declared in the PCB stackup or project settings.
+      - The routed board has a continuous GND copper zone on B.Cu, with no copper outside Edge.Cuts.
+    layout:
+      - All components are on the top side; J1 is placed at a board edge and the USB-C opening is clear of the outline.
+      - Use a minimum copper clearance of 0.20 mm and route VBUS and GND power paths at a minimum width of 0.50 mm.
+      - Keep C2 close to U1 pins 8 and 1, keep the R1/R2/C1 timing loop compact, and keep the LED and polarity markings visible on F.SilkS.
+      - Annotated reference designators, LED polarity, USB-C pin labels, and the board name are readable on the silkscreen.
+    verification:
+      - The schematic and PCB must be parseable by KiCad 9.0.8, ERC and DRC must have zero violations, and all generated manufacturing files must be non-empty.
+grading:
+  deterministic:
+    - name: required_artifacts_present
+      description: Required KiCad project, schematic, PCB, and BOM files exist at the exact paths.
+      command: >-
+        test -f ./led-blinky.kicad_pro &&
+        test -f ./led-blinky.kicad_sch &&
+        test -f ./led-blinky.kicad_pcb &&
+        test -s ./BOM.csv
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: schematic_erc_clean
+      description: KiCad ERC completes successfully and reports no violations.
+      command: >-
+        mkdir -p ./reports &&
+        kicad-cli sch erc ./led-blinky.kicad_sch
+        --format json --output ./reports/led-blinky-erc.json
+        --exit-code-violations
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: pcb_drc_clean
+      description: KiCad DRC completes successfully and reports no violations.
+      command: >-
+        mkdir -p ./reports &&
+        kicad-cli pcb drc ./led-blinky.kicad_pcb
+        --format json --output ./reports/led-blinky-drc.json
+        --exit-code-violations
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: gerber_export_succeeds
+      description: Gerber export for both copper, soldermask, silkscreen, and outline layers exits zero.
+      command: >-
+        mkdir -p ./gerbers &&
+        kicad-cli pcb export gerbers ./led-blinky.kicad_pcb
+        --output ./gerbers
+        --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,Edge.Cuts
+        --no-x2
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: drill_export_succeeds
+      description: Excellon drill export exits zero and writes the required drill file.
+      command: >-
+        mkdir -p ./gerbers &&
+        kicad-cli pcb export drill ./led-blinky.kicad_pcb
+        --output ./gerbers --format excellon &&
+        test -s ./gerbers/led-blinky.drl
+      expected_exit_code: 0
+      pass: "exit_code == 0 and file_exists('./gerbers/led-blinky.drl')"
+    - name: required_gerbers_and_drill_present
+      description: At least four required Gerber layers and one drill file are non-empty.
+      command: >-
+        test "$(find ./gerbers -maxdepth 1 -type f
+        \( -name '*.gtl' -o -name '*.gbl' -o -name '*.gts' -o -name '*.gbs' \)
+        -size +0c | wc -l)" -ge 4 &&
+        test "$(find ./gerbers -maxdepth 1 -type f -name '*.drl' -size +0c | wc -l)" -ge 1
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_footprints_and_two_layers
+      description: PCB text contains the specified footprint families and both copper layer declarations.
+      command: >-
+        for token in USB_C SOIC-8 R_0805 C_0805 LED_0805; do
+          grep -Eiq "$token" ./led-blinky.kicad_pcb || exit 1;
+        done &&
+        grep -Eq 'F\.Cu|B\.Cu' ./led-blinky.kicad_pcb
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_named_nets_present
+      description: PCB contains the named power, timing, LED, and USB-C control nets.
+      command: >-
+        for token in VBUS GND DISCHARGE TIMING LED_DRIVE CC1 CC2; do
+          grep -Eiq "\"$token\"" ./led-blinky.kicad_pcb || exit 1;
+        done
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: bom_contains_required_values
+      description: BOM includes the timer, timing values, LED resistor values, and USB-C Rd values.
+      command: >-
+        test -s ./BOM.csv &&
+        grep -Eiq 'NE555D|555' ./BOM.csv &&
+        grep -Eiq '47k|47 k' ./BOM.csv &&
+        grep -Eiq '10uF|10uF' ./BOM.csv &&
+        grep -Eiq '330R|330' ./BOM.csv &&
+        test "$(grep -Eio '5\.1k|5\.1 k' ./BOM.csv | wc -l)" -ge 2
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+prompt: &eval_prompt |
+    Create a complete KiCad 9.0 project for a USB-C powered LED blinky in the current working directory.
+
+    Deliver exactly these primary files and paths:
+      ./led-blinky.kicad_pro
+      ./led-blinky.kicad_sch
+      ./led-blinky.kicad_pcb
+      ./BOM.csv
+      ./gerbers/ (manufacturing Gerbers and drill output)
+
+    Electrical design:
+    - Use J1, a USB_C_Receptacle_USB2.0_16P with footprint Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal. Tie all USB-C VBUS pins to VBUS and all USB-C GND pins to GND. Put a 5.1k resistor from CC1 to GND and another 5.1k resistor from CC2 to GND. Mark D+ and D- no-connect; this is a power-only input.
+    - Use U1, an NE555D in Package_SO:SOIC-8_3.9x4.9mm_P1.27mm, in astable mode. Connect U1 pin 8 to VBUS, pin 1 to GND, pin 4 RESET to VBUS, and pin 5 CONTROL to a 10nF capacitor to GND. Tie pins 2 TRIGGER and 6 THRESHOLD together as TIMING. Connect pin 7 DISCHARGE to the R1/R2 junction.
+    - Use R1=1k from VBUS to DISCHARGE, R2=47k from DISCHARGE to TIMING, and C1=10uF from TIMING to GND. The resulting oscillator should be approximately 1 Hz.
+    - Connect U1 pin 3 OUTPUT through R3=330R to the anode of red D1; connect D1 cathode to GND. Add an always-on green D2 from VBUS through R4=1k to GND. Use LED_SMD:LED_0805_2012Metric and Resistor_SMD:R_0805_2012Metric for the LED/resistor parts. Add C2=100nF across VBUS and GND close to U1.
+
+    PCB and manufacturing constraints:
+    - Use exactly two copper layers, F.Cu and B.Cu, on 1.6 mm FR-4 with 1 oz copper. Draw an exact 50.0 mm x 30.0 mm rectangular Edge.Cuts outline.
+    - Place all components on the top side, place J1 on an edge, route all nets, use at least 0.20 mm clearance, and use at least 0.50 mm width for VBUS/GND power routes. Add a filled GND zone on B.Cu. Keep the timing loop and C2 close to U1, and make reference designators and LED polarity readable on F.SilkS.
+    - Annotate the schematic, assign the stated footprints, include power symbols or equivalent explicit power intent, and do not leave unconnected pins other than the deliberate USB D+/D- no-connects.
+
+    Before finishing, run these commands from the project directory and fix failures:
+      mkdir -p ./reports ./gerbers
+      kicad-cli sch erc ./led-blinky.kicad_sch --format json --output ./reports/led-blinky-erc.json --exit-code-violations
+      kicad-cli pcb drc ./led-blinky.kicad_pcb --format json --output ./reports/led-blinky-drc.json --exit-code-violations
+      kicad-cli pcb export gerbers ./led-blinky.kicad_pcb --output ./gerbers --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,Edge.Cuts --no-x2
+      kicad-cli pcb export drill ./led-blinky.kicad_pcb --output ./gerbers --format excellon
+    ERC, DRC, Gerber export, and drill export must each exit with status 0. Leave the complete files in the current directory; do not merely describe them.
+inputs:
+  prompt: *eval_prompt
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace
+outputs:
+  - ./led-blinky.kicad_pro
+  - ./led-blinky.kicad_sch
+  - ./led-blinky.kicad_pcb
+  - ./BOM.csv
+  - ./gerbers/*.gtl
+  - ./gerbers/*.gbl
+  - ./gerbers/*.gts
+  - ./gerbers/*.gbs
+  - ./gerbers/*.gto
+  - ./gerbers/*.gbo
+  - ./gerbers/*.gm1
+  - ./gerbers/*.drl
+difficulty: 2
+time_budget_minutes: 45

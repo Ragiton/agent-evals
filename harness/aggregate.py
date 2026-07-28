@@ -16,21 +16,40 @@ import yaml
 
 
 def find_specs(evals_dir: pathlib.Path) -> list[dict]:
-    out = []
+    """Load one canonical definition per eval id.
+
+    Early scaffold files were numbered (``01-...yaml``) and later richer
+    definitions were added without the numeric prefix.  Both may exist in a
+    checkout, but the site must not render duplicate catalog entries.  Prefer
+    the unnumbered definition, then the richer prompt/requirements payload.
+    """
+    candidates: dict[str, list[tuple[pathlib.Path, dict]]] = {}
     for f in sorted(evals_dir.glob("*.yaml")):
         try:
-            data = yaml.safe_load(f.read_text())
-            out.append({
-                "id": data["id"],
-                "title": data.get("title"),
-                "description": data.get("description"),
-                "difficulty": data.get("difficulty"),
-                "estimated_minutes": data.get("estimated_minutes"),
-                "category": data.get("category"),
-                "grading": data.get("grading"),
-            })
+            data = yaml.safe_load(f.read_text()) or {}
+            spec_id = data["id"]
+            candidates.setdefault(spec_id, []).append((f, data))
         except Exception as e:
             print(f"warn: failed to parse {f}: {e}", file=sys.stderr)
+
+    out = []
+    for spec_id, entries in sorted(candidates.items()):
+        def rank(item):
+            f, data = item
+            numbered = bool(f.name[:1].isdigit())
+            richness = len(data.get("prompt", "")) + 100 * len(data.get("engineering_requirements", []))
+            return (numbered, -richness, f.name)
+        f, data = sorted(entries, key=rank)[0]
+        out.append({
+            "id": spec_id,
+            "title": data.get("title"),
+            "description": data.get("description"),
+            "difficulty": data.get("difficulty"),
+            "estimated_minutes": data.get("estimated_minutes"),
+            "category": data.get("category"),
+            "grading": data.get("grading"),
+            "source_path": str(f.relative_to(evals_dir.parent)),
+        })
     return out
 
 

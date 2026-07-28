@@ -1,0 +1,277 @@
+id: esp32-devboard-minimal
+title: "Minimal ESP32-WROOM-32E USB-UART Development Board"
+description: |
+  Design a manufacturable two-layer ESP32 development board around an
+  ESP32-WROOM-32E module. It accepts 5 V from USB-C, regulates 3V3, exposes a
+  USB-UART programming path, implements reset and boot strapping, breaks out
+  usable GPIOs, and includes an antenna keepout. The contract is fully
+  unattended: KiCad CLI, file-content, and artifact checks determine the score.
+requirements:
+  functional:
+    components:
+      U1:
+        value: ESP32-WROOM-32E
+        symbol: RF_Module:ESP32-WROOM-32
+        footprint: RF_Module:ESP32-WROOM-32
+        role: Wi-Fi/BLE module and application MCU
+      J1:
+        value: USB_C_Receptacle_USB2.0_16P
+        footprint: Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal
+        role: 5 V power and USB 2.0 input
+      U2:
+        value: CH340C
+        footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm
+        role: USB-UART bridge
+      U3:
+        value: AP2112K-3.3
+        footprint: Package_TO_SOT_SMD:SOT-23-5
+        role: VBUS-to-3V3 LDO
+      C1:
+        value: 10uF
+        footprint: Capacitor_SMD:C_0805_2012Metric
+        role: VBUS input decoupling
+      C2:
+        value: 10uF
+        footprint: Capacitor_SMD:C_0805_2012Metric
+        role: 3V3 regulator output decoupling
+      C3:
+        value: 100nF
+        footprint: Capacitor_SMD:C_0402_1005Metric
+        role: ESP32 local bypass
+      D1:
+        value: LED_RED
+        footprint: LED_SMD:LED_0402_1005Metric
+        role: GPIO2 status indicator
+      D2:
+        value: LED_GREEN
+        footprint: LED_SMD:LED_0402_1005Metric
+        role: 3V3 power indicator
+      R1:
+        value: 10k
+        footprint: Resistor_SMD:R_0402_1005Metric
+        role: EN pull-up to 3V3
+      R2:
+        value: 10k
+        footprint: Resistor_SMD:R_0402_1005Metric
+        role: GPIO0 boot pull-up to 3V3
+      R3:
+        value: 1k
+        footprint: Resistor_SMD:R_0402_1005Metric
+        role: GPIO2 status LED limiter
+      R4:
+        value: 1k
+        footprint: Resistor_SMD:R_0402_1005Metric
+        role: 3V3 power LED limiter
+      R5:
+        value: 5.1k
+        footprint: Resistor_SMD:R_0402_1005Metric
+        role: USB-C CC1 Rd to GND
+      R6:
+        value: 5.1k
+        footprint: Resistor_SMD:R_0402_1005Metric
+        role: USB-C CC2 Rd to GND
+      SW1:
+        value: BOOT_NO
+        footprint: Button_Switch_SMD:SW_SPST_TL3301N
+        role: GPIO0 to GND when pressed
+      SW2:
+        value: RESET_NO
+        footprint: Button_Switch_SMD:SW_SPST_TL3301N
+        role: EN to GND when pressed
+      J2:
+        value: GPIO_HEADER_LEFT
+        footprint: Connector_PinHeader_2.54mm:PinHeader_1x19_P2.54mm_Vertical
+        role: GPIO breakout
+      J3:
+        value: GPIO_HEADER_RIGHT
+        footprint: Connector_PinHeader_2.54mm:PinHeader_1x19_P2.54mm_Vertical
+        role: GPIO breakout
+    nets:
+      - name: VBUS
+        connections: J1.VBUS, U3.IN, C1.1
+      - name: 3V3
+        connections: U3.OUT, U1.3V3, U2.VCC, C2.1, C3.1, R1.1, R2.1, R4.1
+      - name: GND
+        connections: J1.GND, U1.GND, U2.GND, U3.GND, C1.2, C2.2, C3.2, SW1.2, SW2.2, D1.K, D2.K, R5.2, R6.2
+      - name: USB_D+
+        connections: J1.A6, J1.B6, U2.UD+
+      - name: USB_D-
+        connections: J1.A7, J1.B7, U2.UD-
+      - name: UART_TX
+        connections: U2.TXD, U1.U0RXD_GPIO3
+      - name: UART_RX
+        connections: U2.RXD, U1.U0TXD_GPIO1
+      - name: EN
+        connections: U1.EN, R1.2, SW2.1
+      - name: GPIO0
+        connections: U1.GPIO0, R2.2, SW1.1
+      - name: GPIO2
+        connections: U1.GPIO2, R3.1, D1.A
+    behavior:
+      - J1 is a 5 V sink; all VBUS pins are VBUS, all grounds and shield pads are GND, and CC1/CC2 each use 5.1k Rd to GND.
+      - U3 converts VBUS to 3V3. C1 is on VBUS, C2 is at U3 OUT, and C3 is adjacent to U1 3V3/GND.
+      - U2 TXD/RXD form the programming path to U1 GPIO3/U0RXD and GPIO1/U0TXD.
+      - SW1 asserts GPIO0 low only when pressed; SW2 asserts EN low only when pressed. D1 is GPIO2 status and D2 is the 3V3 power indicator.
+      - J2/J3 expose 3V3, GND, EN, GPIO0, GPIO1, GPIO2, GPIO3, and every usable GPIO4 through GPIO39 present on U1.
+  engineering:
+    - Use exactly two copper layers, F.Cu and B.Cu, on 1.60 mm FR-4 with 1 oz copper and a closed Edge.Cuts outline.
+    - Place all components on top except the B.Cu GND zone. VBUS and 3V3 tracks are at least 0.50 mm wide; USB_D+/USB_D- use a declared matched-pair width and spacing.
+    - Add a named U1_ANTENNA_KEEPOUT that prohibits copper, tracks, vias, zones, and footprints on all copper layers and extends at least 6.0 mm beyond the antenna edge.
+    - Keep the antenna projection free of copper and components, keep C3 close to U1, and use a filled B.Cu GND zone with no fill in the keepout.
+    - Annotate, assign real footprints, document deliberate no-connects for unused module pins, and export non-empty BOM.csv, design-notes.md, Gerbers, drill, and job files.
+    - KiCad 9 ERC and DRC must return zero violations and the reports must contain no error or unconnected violations.
+grading:
+  deterministic:
+    - name: required_project_files
+      description: The project, schematic, PCB, BOM, and design notes exist and are non-empty.
+      command: >-
+        test -s ./esp32-devboard-minimal.kicad_pro && test -s ./esp32-devboard-minimal.kicad_sch &&
+        test -s ./esp32-devboard-minimal.kicad_pcb && test -s ./BOM.csv && test -s ./design-notes.md
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: schematic_erc_clean
+      description: KiCad ERC returns zero and its JSON report contains no error or unconnected violations.
+      command: >-
+        mkdir -p ./reports && kicad-cli sch erc ./esp32-devboard-minimal.kicad_sch
+        --format json --output ./reports/esp32-devboard-minimal-erc.json --exit-code-violations &&
+        python3 -c 'import json,pathlib,sys; d=json.loads(pathlib.Path("./reports/esp32-devboard-minimal-erc.json").read_text()); walk=lambda x: ([x] + sum((walk(v) for v in x.values()),[]) if isinstance(x,dict) else sum((walk(v) for v in x),[]) if isinstance(x,list) else []); nodes=walk(d); bad=[n for n in nodes if isinstance(n,dict) and (str(n.get("severity","")).lower() == "error" or "unconnected" in " ".join(str(n.get(k,"")) for k in ("type","violation_type","description","message")).lower())]; sys.exit(0 if not bad else 1)'
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: pcb_drc_clean
+      description: KiCad DRC returns zero and its JSON report contains no error or unconnected violations.
+      command: >-
+        mkdir -p ./reports && kicad-cli pcb drc ./esp32-devboard-minimal.kicad_pcb
+        --format json --output ./reports/esp32-devboard-minimal-drc.json --exit-code-violations &&
+        python3 -c 'import json,pathlib,sys; d=json.loads(pathlib.Path("./reports/esp32-devboard-minimal-drc.json").read_text()); walk=lambda x: ([x] + sum((walk(v) for v in x.values()),[]) if isinstance(x,dict) else sum((walk(v) for v in x),[]) if isinstance(x,list) else []); nodes=walk(d); bad=[n for n in nodes if isinstance(n,dict) and (str(n.get("severity","")).lower() == "error" or "unconnected" in " ".join(str(n.get(k,"")) for k in ("type","violation_type","description","message")).lower())]; sys.exit(0 if not bad else 1)'
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: gerber_export_succeeds
+      description: Export all copper, mask, silk, paste, and outline layers.
+      command: >-
+        rm -rf ./gerbers && mkdir -p ./gerbers && kicad-cli pcb export gerbers
+        ./esp32-devboard-minimal.kicad_pcb --output ./gerbers
+        --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,F.Paste,B.Paste,Edge.Cuts --no-x2
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: drill_export_succeeds
+      description: Excellon drill export returns zero and writes a non-empty file.
+      command: >-
+        kicad-cli pcb export drill ./esp32-devboard-minimal.kicad_pcb
+        --output ./gerbers --format excellon && test -s ./gerbers/esp32-devboard-minimal.drl
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_fabrication_outputs_present
+      description: Required copper, mask, silk, paste, outline, drill, and job files are non-empty.
+      command: >-
+        for suffix in gtl gbl gts gbs gto gbo gtp gbp gm1 drl gbrjob; do
+          test "$(find ./gerbers -maxdepth 1 -type f -name "*.$suffix" -size +0c | wc -l)" -ge 1 || exit 1;
+        done
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_components_and_footprints
+      description: Schematic and PCB include the module, USB-UART, regulator, USB-C, and breakout footprints.
+      command: >-
+        for token in ESP32-WROOM-32E CH340C AP2112K-3.3 USB_C_Receptacle_USB2.0_16P; do
+          grep -Eiq "$token" ./esp32-devboard-minimal.kicad_sch || exit 1;
+        done &&
+        for token in ESP32-WROOM CH340C SOT-23-5 SOIC-16 PinHeader_1x19; do
+          grep -Eiq "$token" ./esp32-devboard-minimal.kicad_pcb || exit 1;
+        done
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_nets_and_strapping
+      description: USB, UART, power, reset, boot, and status nets are present in both design files.
+      command: >-
+        for token in VBUS 3V3 GND USB_D+ USB_D- UART_TX UART_RX EN GPIO0 GPIO2; do
+          grep -Fiq "$token" ./esp32-devboard-minimal.kicad_sch || exit 1;
+          grep -Fiq "$token" ./esp32-devboard-minimal.kicad_pcb || exit 1;
+        done &&
+        grep -Eiq '5\.1k|5k1' ./esp32-devboard-minimal.kicad_sch &&
+        grep -Eiq '10k|10 k' ./esp32-devboard-minimal.kicad_sch
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: antenna_keepout_and_two_layers
+      description: PCB text contains the named all-layer antenna keepout, two copper layers, outline, and bottom zone.
+      command: >-
+        for token in F.Cu B.Cu Edge.Cuts U1_ANTENNA_KEEPOUT keepout not_allowed copper tracks vias footprints; do
+          grep -Eiq "$token" ./esp32-devboard-minimal.kicad_pcb || exit 1;
+        done && grep -Eiq '\(zone ' ./esp32-devboard-minimal.kicad_pcb
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: bom_contains_required_references
+      description: BOM lists the module, USB-UART, regulator, buttons, USB-C connector, and headers.
+      command: >-
+        for token in U1 ESP32-WROOM-32E U2 CH340C U3 AP2112K-3.3 J1 SW1 SW2 J2 J3; do
+          grep -Eiq "$token" ./BOM.csv || exit 1;
+        done
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+  llm_judge:
+    enabled: false
+  weights:
+    deterministic: 1.0
+    llm_judge: 0.0
+prompt: &eval_prompt |
+    Create a complete KiCad 9 project in the current workspace for a minimal
+    ESP32-WROOM-32E development board. Do not describe it only: create the
+    project, schematic, PCB, BOM, notes, and fabrication files, then run the
+    exact checks below and repair failures.
+
+    Electrical requirements:
+    - U1 is value ESP32-WROOM-32E using symbol RF_Module:ESP32-WROOM-32 and
+      footprint RF_Module:ESP32-WROOM-32. J1 is value
+      USB_C_Receptacle_USB2.0_16P with the stated USB4105 footprint. Tie all
+      VBUS pins to VBUS and grounds/shield to GND; use R5/R6=5.1k Rd from CC1/
+      CC2 to GND. USB A6/B6 are USB_D+ and A7/B7 are USB_D-.
+    - U2=CH340C (SOIC-16) connects USB_D+/USB_D- to the USB pins and TXD/RXD to
+      U1 GPIO3/U0RXD and GPIO1/U0TXD. U3=AP2112K-3.3 (SOT-23-5) converts VBUS
+      to 3V3. Use C1=10uF at VBUS, C2=10uF at the LDO output, and C3=100nF
+      next to U1.
+    - R1=10k pulls EN to 3V3 and SW2 normally-open RESET pulls EN to GND when
+      pressed. R2=10k pulls GPIO0 to 3V3 and SW1 normally-open BOOT pulls GPIO0
+      to GND when pressed. D1 is a GPIO2 status LED through R3=1k; D2 is a 3V3
+      power LED through R4=1k. J2/J3 are 1x19 2.54 mm headers breaking out
+      3V3, GND, EN, GPIO0, GPIO1, GPIO2, GPIO3, and all usable GPIO4-GPIO39.
+      Use exact net labels VBUS, 3V3, GND, USB_D+, USB_D-, UART_TX, UART_RX,
+      EN, GPIO0, and GPIO2.
+
+    PCB/fabrication requirements:
+    - Use exactly F.Cu and B.Cu on nominal 1.60 mm FR-4, 1 oz copper, and a
+      closed Edge.Cuts outline. Use >=0.50 mm VBUS/3V3 copper and a filled B.Cu
+      GND zone. Route USB_D+/USB_D- as a declared matched pair.
+    - Add a named U1_ANTENNA_KEEPOUT on all copper layers that prohibits
+      copper, tracks, vias, zones, and footprints and extends >=6.0 mm beyond
+      the module antenna. Keep C3 close to U1 and all parts top-side.
+    - Create BOM.csv, design-notes.md, and ./gerbers/ with non-empty copper,
+      mask, silk, paste, outline, drill, and job files.
+
+    Run these commands from the project directory and fix failures:
+      kicad-cli sch erc ./esp32-devboard-minimal.kicad_sch --format json --output ./reports/esp32-devboard-minimal-erc.json --exit-code-violations
+      kicad-cli pcb drc ./esp32-devboard-minimal.kicad_pcb --format json --output ./reports/esp32-devboard-minimal-drc.json --exit-code-violations
+      kicad-cli pcb export gerbers ./esp32-devboard-minimal.kicad_pcb --output ./gerbers --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,F.Paste,B.Paste,Edge.Cuts --no-x2
+      kicad-cli pcb export drill ./esp32-devboard-minimal.kicad_pcb --output ./gerbers --format excellon
+    ERC, DRC, Gerber export, and drill export must return status 0.
+inputs:
+  prompt: *eval_prompt
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace
+outputs:
+  - ./esp32-devboard-minimal.kicad_pro
+  - ./esp32-devboard-minimal.kicad_sch
+  - ./esp32-devboard-minimal.kicad_pcb
+  - ./BOM.csv
+  - ./design-notes.md
+  - ./gerbers/*.gtl
+  - ./gerbers/*.gbl
+  - ./gerbers/*.gts
+  - ./gerbers/*.gbs
+  - ./gerbers/*.gto
+  - ./gerbers/*.gbo
+  - ./gerbers/*.gtp
+  - ./gerbers/*.gbp
+  - ./gerbers/*.gm1
+  - ./gerbers/*.drl
+  - ./gerbers/*.gbrjob
+difficulty: 4
+time_budget_minutes: 60

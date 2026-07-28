@@ -1,0 +1,280 @@
+id: two-layer-impedance-match
+title: "2.45 GHz Two-Layer 50 Ohm RF Matching Network"
+description: >-
+  Design a two-layer 2.45 GHz ISM-band RF board with a 50 Ohm controlled-
+  impedance microstrip from an ESP32-WROOM-32E RF pin through a three-element
+  pi matching network to an edge-launch SMA connector. The stackup, geometry,
+  tolerances, net names, component footprints, and fabrication exports are
+  explicit so grading can be performed by KiCad CLI and scripts without visual
+  or LLM-subjective criteria.
+difficulty: 5
+time_budget_minutes: 75
+
+requirements:
+  functional:
+    - >-
+      The RF operating frequency is 2.450 GHz (2.400-2.500 GHz ISM band) and
+      the single-ended controlled-impedance target is 50 Ohm with a tolerance
+      of +/-10 percent at 2.450 GHz.
+    - >-
+      U1 is an ESP32-WROOM-32E module with value ESP32-WROOM-32E, symbol
+      RF_Module:ESP32-WROOM-32, and footprint RF_Module:ESP32-WROOM-32. Its RF
+      antenna pin is the source-side endpoint named RF_U1.
+    - >-
+      J1 is an edge-launch 50 Ohm SMA connector with value SMA_EDGE_50R and
+      footprint Connector_Coaxial:SMA_Amphenol_132289_EdgeMount. Its center
+      pin is the load-side endpoint named RF_SMA and its shell is GND.
+    - >-
+      The matching network is a pi network in the only RF path, in the exact
+      order RF_U1 -> C1 -> RF_MATCH -> C2 -> RF_SMA, with L1 shunting
+      RF_MATCH to GND. C1 and C2 are 1.0 pF C0G 0402 capacitors and L1 is a
+      2.2 nH 0402 inductor; each has an explicit footprint.
+    - >-
+      J2 is a 1x03, 2.54 mm through-hole power header with pins 1=3V3,
+      2=GND, and 3=EN. C3=100 nF and C4=10 uF are 3V3-to-GND bypass capacitors
+      for U1. No unconnected power input pins are left without a named net.
+    - >-
+      The schematic and PCB use the exact electrical net names RF_U1, RF_MATCH,
+      RF_SMA, GND, 3V3, and EN. RF_50R is the exact net-class name assigned to
+      RF_U1, RF_MATCH, RF_SMA, and every matching-pad/trace segment in the
+      controlled-impedance path.
+    - >-
+      The RF path has no branches or stubs, has no vias in the signal path, and
+      has a total routed centerline length from the U1 RF pad to the J1 center
+      pad of 25.0 mm +/-1.0 mm.
+  engineering:
+    - >-
+      The PCB has exactly two copper layers: F.Cu is the RF signal layer and
+      B.Cu is a continuous GND reference plane. There are no In1.Cu, In2.Cu,
+      or other copper signal layers.
+    - >-
+      Stackup assumptions are machine-readable in notes.md: F.Cu 35 +/-5 um,
+      FR-4 core 1.00 +/-0.10 mm, relative permittivity Er=4.1 +/-0.2, and B.Cu
+      35 +/-5 um. Nominal board thickness is 1.00 mm +/-0.10 mm; solder mask
+      is excluded from the impedance calculation.
+    - >-
+      The top-layer RF_50R microstrip is 1.80 mm wide +/-0.05 mm for its full
+      length. Keep all unrelated F.Cu copper at least 0.25 mm from the trace
+      edge. The width, clearance, dielectric height, Er, and tolerance values
+      are declared in notes.md and are extractable by a script.
+    - >-
+      The B.Cu GND plane remains present directly beneath the complete RF path;
+      there are no B.Cu slots, pours with gaps, or cutouts beneath RF_50R.
+    - >-
+      Provide a grounded via fence beside the RF path: at least eight GND vias,
+      0.60 mm pad and 0.30 mm finished drill, approximately 2.0 mm pitch, with
+      no more than 3.0 mm between neighboring fence vias. The fence must not
+      short to RF_50R.
+    - >-
+      C1, L1, and C2 are 0402 parts placed in-line with RF_50R, with pad-to-pad
+      gaps no larger than 0.50 mm and no test-point or branch stub on RF_50R.
+    - >-
+      KiCad ERC and DRC complete with exit status 0 using the exact commands in
+      grading.deterministic. Reports contain zero error-severity violations and
+      zero unconnected violations.
+    - >-
+      Fabrication exports include both copper layers, both solder masks, both
+      silkscreens, paste layers, Edge.Cuts, an Excellon drill file, and BOM.csv.
+      All required files are non-empty.
+    - >-
+      The machine-readable impedance extraction record in notes.md must state
+      target_impedance_ohm=50, impedance_tolerance_percent=10,
+      frequency_hz=2450000000, dielectric_height_mm=1.00,
+      trace_width_mm=1.80, trace_clearance_mm=0.25, and er_nominal=4.1.
+
+prompt: &rf_prompt |
+  Create a complete KiCad 9 project for a two-layer controlled-impedance RF
+  matching board in the current workspace. Do not only write a description:
+  create the project, schematic, PCB, BOM.csv, notes.md, and fabrication files,
+  then run every verification command below.
+
+  RF electrical requirements:
+  - Center frequency: 2.450 GHz in the 2.400-2.500 GHz ISM band.
+  - Target: single-ended 50 Ohm at 2.450 GHz, accepted tolerance +/-10 percent.
+  - U1: ESP32-WROOM-32E, symbol RF_Module:ESP32-WROOM-32, value
+    ESP32-WROOM-32E, footprint RF_Module:ESP32-WROOM-32. Use the module RF
+    antenna pin as the source endpoint and label its net RF_U1.
+  - J1: edge-launch SMA, value SMA_EDGE_50R, footprint
+    Connector_Coaxial:SMA_Amphenol_132289_EdgeMount. Connect its center pin to
+    RF_SMA and shell to GND.
+  - Implement exactly one pi matching network in this order:
+    RF_U1 -> C1 -> RF_MATCH -> C2 -> RF_SMA, with L1 from RF_MATCH to GND.
+    C1=1.0 pF C0G 0402, L1=2.2 nH 0402, and C2=1.0 pF C0G 0402. Use explicit
+    0402 footprints for all three and no alternate branch on RF_50R.
+  - J2: 1x03 2.54 mm through-hole power header, pin 1=3V3, pin 2=GND,
+    pin 3=EN. Add C3=100 nF and C4=10 uF from 3V3 to GND near U1.
+  - The schematic and PCB use the exact net labels RF_U1, RF_MATCH, RF_SMA,
+    GND, 3V3, and EN. Define the exact net class RF_50R and assign it to the
+    RF_U1, RF_MATCH, and RF_SMA nets plus every matching component pad/trace.
+  - Keep the RF path from U1 to J1 via C1/L1/C2 only. Do not put vias in the
+    signal path. Its routed centerline length must be 25.0 mm +/-1.0 mm.
+
+  Stackup and geometry requirements:
+  - Exactly two copper layers: F.Cu signal over B.Cu continuous GND plane.
+    Do not create In1.Cu, In2.Cu, or any other copper layer.
+  - Nominal stackup: F.Cu 35 +/-5 um copper, FR-4 core 1.00 +/-0.10 mm,
+    Er=4.1 +/-0.2, B.Cu 35 +/-5 um copper. Nominal board thickness is
+    1.00 +/-0.10 mm. Exclude solder mask from the impedance calculation.
+  - Route RF_50R on F.Cu as a 1.80 mm +/-0.05 mm microstrip for the full path.
+    Keep unrelated F.Cu copper at least 0.25 mm from the trace edge. Keep a
+    continuous B.Cu GND plane under RF_50R with no slots or cutouts.
+  - Add at least eight GND stitching vias beside the RF path. Each via must
+    have a 0.60 mm pad and 0.30 mm finished drill, roughly 2.0 mm pitch, with
+    no gap over 3.0 mm. Keep the fence clear of RF_50R.
+  - Place C1, L1, and C2 inline, with 0402 pads and no more than 0.50 mm
+    pad-to-pad gaps. Include a closed Edge.Cuts outline.
+
+  Write notes.md with one machine-readable key=value line for each of these:
+  frequency_hz=2450000000
+  target_impedance_ohm=50
+  impedance_tolerance_percent=10
+  dielectric_height_mm=1.00
+  trace_width_mm=1.80
+  trace_clearance_mm=0.25
+  er_nominal=4.1
+  copper_thickness_um=35
+  trace_length_mm=25.0
+  board_layers=2
+  Stackup prose may follow those lines, but do not omit or rename the keys.
+
+  Required file layout (all paths relative to the workspace):
+  - impedance-match.kicad_pro
+  - impedance-match.kicad_sch
+  - impedance-match.kicad_pcb
+  - BOM.csv
+  - notes.md
+  - gerbers/
+
+  Verify and fix the design with these exact commands:
+  - kicad-cli sch erc impedance-match.kicad_sch --format json --exit-code-violations
+  - kicad-cli pcb drc impedance-match.kicad_pcb --format json --exit-code-violations
+  - kicad-cli pcb export gerbers impedance-match.kicad_pcb --output gerbers/
+  - kicad-cli pcb export drill impedance-match.kicad_pcb --output gerbers/ --format excellon
+  ERC and DRC must return status 0, with no error or unconnected violations.
+
+inputs:
+  prompt: *rf_prompt
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace/
+  allowed_tools:
+    - kicad-cli
+    - python3
+
+outputs:
+  - impedance-match.kicad_pro
+  - impedance-match.kicad_sch
+  - impedance-match.kicad_pcb
+  - BOM.csv
+  - notes.md
+  - gerbers/*.gtl
+  - gerbers/*.gbl
+  - gerbers/*.gts
+  - gerbers/*.gbs
+  - gerbers/*.gto
+  - gerbers/*.gbo
+  - gerbers/*.gtp
+  - gerbers/*.gbp
+  - gerbers/*.gm1
+  - gerbers/*.drl
+  - gerbers/*.gbrjob
+
+grading:
+  deterministic:
+    - name: project_and_kicad_files_present
+      command: >-
+        python3 -c 'import pathlib,sys; required=["impedance-match.kicad_pro","impedance-match.kicad_sch","impedance-match.kicad_pcb","BOM.csv","notes.md"]; sys.exit(0 if all(pathlib.Path(p).is_file() and pathlib.Path(p).stat().st_size > 0 for p in required) else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: schematic_erc_clean
+      command: "kicad-cli sch erc {kicad_sch} --format json --exit-code-violations"
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: pcb_drc_clean
+      command: "kicad-cli pcb drc {kicad_pcb} --format json --exit-code-violations"
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: erc_zero_errors_and_unconnected
+      command: >-
+        mkdir -p ./reports && kicad-cli sch erc {kicad_sch} --format json --exit-code-violations --output ./reports/impedance-match-erc.json
+        && python3 -c 'import json,pathlib,sys; d=json.loads(pathlib.Path("./reports/impedance-match-erc.json").read_text()); walk=lambda x: ([x] + sum((walk(v) for v in x.values()),[]) if isinstance(x,dict) else sum((walk(v) for v in x),[]) if isinstance(x,list) else []); nodes=walk(d); bad=[n for n in nodes if isinstance(n,dict) and (str(n.get("severity","")).lower() == "error" or "unconnected" in " ".join(str(n.get(k,"")) for k in ("type","violation_type","description","message")).lower())]; sys.exit(0 if not bad else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: drc_zero_errors_and_unconnected
+      command: >-
+        mkdir -p ./reports && kicad-cli pcb drc {kicad_pcb} --format json --exit-code-violations --output ./reports/impedance-match-drc.json
+        && python3 -c 'import json,pathlib,sys; d=json.loads(pathlib.Path("./reports/impedance-match-drc.json").read_text()); walk=lambda x: ([x] + sum((walk(v) for v in x.values()),[]) if isinstance(x,dict) else sum((walk(v) for v in x),[]) if isinstance(x,list) else []); nodes=walk(d); bad=[n for n in nodes if isinstance(n,dict) and (str(n.get("severity","")).lower() == "error" or "unconnected" in " ".join(str(n.get(k,"")) for k in ("type","violation_type","description","message")).lower())]; sys.exit(0 if not bad else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: gerber_export_command_succeeds
+      command: "kicad-cli pcb export gerbers {kicad_pcb} --output gerbers/"
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: drill_export_command_succeeds
+      command: "mkdir -p ./gerbers && kicad-cli pcb export drill {kicad_pcb} --output gerbers/impedance-match.drl --format excellon && test -s gerbers/impedance-match.drl"
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: schematic_matching_network_and_connectors
+      command: >-
+        python3 -c 'import pathlib,re,sys; t=pathlib.Path("{kicad_sch}").read_text(errors="replace"); patterns=[r"ESP32-WROOM-32E",r"SMA_EDGE_50R",r"SMA_Amphenol_132289_EdgeMount",r"PinHeader_1x03",r"1\.0 pF",r"2\.2 nH",r"C0G",r"RF_U1",r"RF_MATCH",r"RF_SMA",r"RF_50R",r"3V3",r"GND"]; sys.exit(0 if all(re.search(p,t,re.I) for p in patterns) else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: pcb_two_layers_and_rf_geometry
+      command: >-
+        python3 -c 'import pathlib,re,sys; t=pathlib.Path("{kicad_pcb}").read_text(errors="replace"); required=[r"F\.Cu",r"B\.Cu",r"RF_50R",r"1\.8",r"Edge\.Cuts",r"\(zone ",r"via",r"0\.30",r"0\.60"]; forbidden=[r"In1\.Cu",r"In2\.Cu",r"In3\.Cu"]; sys.exit(0 if all(re.search(p,t,re.I) for p in required) and not any(re.search(p,t,re.I) for p in forbidden) else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: matching_components_and_footprints
+      command: >-
+        python3 -c 'import pathlib,re,sys; t=pathlib.Path("{kicad_pcb}").read_text(errors="replace")+pathlib.Path("{kicad_sch}").read_text(errors="replace"); patterns=[r"C1",r"C2",r"L1",r"1\.0 pF",r"2\.2 nH",r"0402",r"SMA_Amphenol_132289_EdgeMount"]; sys.exit(0 if all(re.search(p,t,re.I) for p in patterns) else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: rf_connectivity_and_power_nets
+      command: >-
+        python3 -c 'import pathlib,re,sys; s=pathlib.Path("{kicad_sch}").read_text(errors="replace"); p=pathlib.Path("{kicad_pcb}").read_text(errors="replace"); nets=["RF_U1","RF_MATCH","RF_SMA","RF_50R","GND","3V3","EN"]; sys.exit(0 if all(re.search(re.escape(n),s) and re.search(re.escape(n),p) for n in nets) else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: impedance_extraction_record
+      command: >-
+        python3 -c 'import pathlib,re,sys; t=pathlib.Path("notes.md").read_text(errors="replace"); required={"frequency_hz":"2450000000","target_impedance_ohm":"50","impedance_tolerance_percent":"10","dielectric_height_mm":"1.00","trace_width_mm":"1.80","trace_clearance_mm":"0.25","er_nominal":"4.1","copper_thickness_um":"35","trace_length_mm":"25.0","board_layers":"2"}; sys.exit(0 if all(re.search(r"^"+re.escape(k)+r"="+re.escape(v)+r"(?:\s|$)",t,re.M) for k,v in required.items()) else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: ground_via_fence_count
+      command: >-
+        python3 -c 'import pathlib,re,sys; t=pathlib.Path("{kicad_pcb}").read_text(errors="replace"); vias=re.findall(r"\(via\b",t); sys.exit(0 if len(vias) >= 8 and len(re.findall(r"GND",t,re.I)) >= 2 else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: fabrication_outputs_present
+      command: >-
+        python3 -c 'import pathlib,sys; d=pathlib.Path("gerbers"); required=[".gtl",".gbl",".gts",".gbs",".gto",".gbo",".gtp",".gbp",".gm1",".drl",".gbrjob"]; ok=d.is_dir() and all(any(p.is_file() and p.stat().st_size > 0 for p in d.glob("*"+s)) for s in required); sys.exit(0 if ok else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+    - name: bom_contains_rf_parts
+      command: >-
+        python3 -c 'import pathlib,re,sys; t=pathlib.Path("BOM.csv").read_text(errors="replace"); required=[r"U1",r"ESP32-WROOM-32E",r"J1",r"SMA_EDGE_50R",r"C1",r"C2",r"L1",r"1\.0 pF",r"2\.2 nH"]; sys.exit(0 if all(re.search(x,t,re.I) for x in required) else 1)'
+      expected_exit_code: 0
+      pass: exit_code == 0
+  llm_judge:
+    enabled: false
+    model: gpt-5.6-luna
+    prompt: "Disabled: this evaluation is graded only by deterministic file, geometry, and KiCad CLI checks."
+  weights:
+    deterministic: 1.0
+    llm_judge: 0.0
+
+passing_threshold: 0.80
+metadata:
+  area_of_test:
+    - rf_stackup
+    - controlled_impedance
+    - pi_matching_network
+    - sma_connector
+    - ground_via_fence
+    - fabrication_export
+  layer_count: 2
+  frequency_hz: 2450000000
+  target_impedance_ohm: 50
+  impedance_tolerance_percent: 10
+  dielectric_height_mm: 1.0
+  trace_width_mm: 1.8
+  er_nominal: 4.1

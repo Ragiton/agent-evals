@@ -1,0 +1,273 @@
+id: buck-converter-3v3
+title: "12 V to 3.3 V / 3 A Buck Converter"
+description: |
+  Design a complete, manufacturable two-layer asynchronous buck converter using
+  the TI TPS54331DR. The board accepts 12 V nominal input and produces 3.3 V for
+  loads up to 3 A. The contract covers the switching power path, feedback
+  setpoint, protection, thermal connection, PCB constraints, and fabrication
+  exports. Every acceptance check is executable without visual review.
+requirements:
+  functional:
+    components:
+      U1:
+        value: TPS54331DR
+        symbol: Regulator_Switching:TPS54331DR
+        footprint: Package_SO:SO-PowerPAD-8
+        role: 3 A asynchronous switching regulator with exposed PowerPAD; VIN rating 4.5-28 V
+      J1:
+        value: VIN_12V
+        symbol: Connector:Barrel_Jack
+        footprint: Connector_BarrelJack:BarrelJack_Horizontal
+        role: 12 V nominal input connector; 9-18 Vdc operating range
+      J2:
+        value: VOUT_3V3
+        symbol: Connector_Generic:Conn_01x02
+        footprint: Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical
+        role: 3.3 V and GND output header; 3 A maximum load
+      L1:
+        value: 15uH
+        symbol: Device:L
+        footprint: Inductor_SMD:L_1210_HandSolder
+        role: 15 uH inductor with Isat >= 4 A and Irms >= 3 A
+      D1:
+        value: SS34
+        symbol: Device:D_Schottky
+        footprint: Diode_SMD:D_SMA
+        role: asynchronous catch Schottky diode from GND to SW
+      C1:
+        value: 100nF
+        symbol: Device:C
+        footprint: Capacitor_SMD:C_0603_1608Metric
+        role: high-frequency VIN bypass; 50 V rating
+      C2:
+        value: 22uF_25V
+        symbol: Device:C
+        footprint: Capacitor_SMD:C_1210_HandSolder
+        role: VIN bulk decoupling; 25 V rating
+      C3:
+        value: 22uF_6V3
+        symbol: Device:C
+        footprint: Capacitor_SMD:C_1210_HandSolder
+        role: VOUT decoupling; 6.3 V rating
+      C4:
+        value: 22uF_6V3
+        symbol: Device:C
+        footprint: Capacitor_SMD:C_1210_HandSolder
+        role: VOUT decoupling; 6.3 V rating
+      CBOOT:
+        value: 100nF
+        symbol: Device:C
+        footprint: Capacitor_SMD:C_0402_1005Metric
+        role: BOOT-to-SW bootstrap capacitor
+      CSS:
+        value: 10nF
+        symbol: Device:C
+        footprint: Capacitor_SMD:C_0402_1005Metric
+        role: soft-start capacitor
+      R1:
+        value: 31.6k
+        symbol: Device:R
+        footprint: Resistor_SMD:R_0603_1608Metric
+        role: VOUT-to-VFB divider resistor
+      R2:
+        value: 10.0k
+        symbol: Device:R
+        footprint: Resistor_SMD:R_0603_1608Metric
+        role: VFB-to-GND divider resistor
+      R3:
+        value: 100k
+        symbol: Device:R
+        footprint: Resistor_SMD:R_0603_1608Metric
+        role: VIN-to-EN/UVLO pull-up
+      F1:
+        value: 2A_RESETTABLE_FUSE
+        symbol: Device:Polyfuse
+        footprint: Fuse:Fuse_1206_3216Metric
+        role: input over-current protection; 2 A hold / 4 A trip class
+      D2:
+        value: SMBJ18A
+        symbol: Device:D_TVS
+        footprint: Diode_SMD:D_SMB
+        role: post-fuse input transient protection; 18 V standoff
+    nets:
+      - name: VIN_RAW
+        connections: J1.1, F1.1
+      - name: VIN
+        connections: F1.2, C1.1, C2.1, U1.VIN, R3.1, D2.A
+      - name: GND
+        connections: J1.2, U1.GND, U1.PowerPAD, D1.A, C1.2, C2.2, C3.2, C4.2, CSS.2, R2.2, J2.2, D2.K
+      - name: SW
+        connections: U1.SW, L1.1, D1.K, CBOOT.2
+      - name: VOUT
+        connections: L1.2, C3.1, C4.1, R1.1, J2.1
+      - name: VFB
+        connections: U1.VFB, R1.2, R2.1
+      - name: EN_UVLO
+        connections: U1.EN, R3.2
+      - name: SS
+        connections: U1.SS, CSS.1
+      - name: BOOT
+        connections: U1.BOOT, CBOOT.1
+    behavior:
+      - VIN_RAW passes through F1 to VIN; VIN to U1 SW to L1 to VOUT is the only regulated power path, and D2 clamps VIN to GND.
+      - VFB uses the 0.8 V reference and R1=31.6k, R2=10.0k, yielding approximately 3.33 V.
+      - The exposed PowerPAD is electrically connected to GND and thermally stitched with at least five vias.
+      - BOOT is connected to SW through CBOOT=100nF; SS is connected to GND through CSS=10nF.
+    constraints:
+      input_voltage:
+        nominal_v: 12.0
+        operating_min_v: 9.0
+        operating_max_v: 18.0
+        regulator_absolute_max_v: 28.0
+      output:
+        setpoint_v: 3.3
+        tolerance_percent: 5
+        maximum_current_a: 3.0
+      switching:
+        inductor_value_uH: 15.0
+        minimum_saturation_current_a: 4.0
+  engineering:
+    - Use exactly two copper layers, F.Cu and B.Cu, on 1.6 mm FR-4 with 1 oz or 2 oz copper; declare the stackup in the PCB.
+    - Use a closed Edge.Cuts outline and a filled B.Cu GND zone; keep all copper inside the outline.
+    - VIN, VOUT, and SW high-current tracks are at least 1.0 mm wide. Keep the VIN bypass/U1/D1/SW/L1 loop compact.
+    - Keep VFB routing away from SW and L1; place C1/C2 next to U1 VIN/GND and C3/C4 next to L1/VOUT return.
+    - Assign footprints to every component, annotate the schematic, provide silkscreen polarity/reference text, and create a non-empty BOM.csv and design-notes.md.
+    - KiCad 9 ERC and DRC must return zero violations and all copper, mask, silkscreen, outline, drill, and job outputs must be non-empty.
+grading:
+  deterministic:
+    - name: required_project_files
+      description: The primary project, schematic, PCB, BOM, and design notes exist and are non-empty.
+      command: >-
+        test -s ./buck-converter-3v3.kicad_pro && test -s ./buck-converter-3v3.kicad_sch &&
+        test -s ./buck-converter-3v3.kicad_pcb && test -s ./BOM.csv && test -s ./design-notes.md
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: schematic_erc_clean
+      description: KiCad ERC reports no violations and returns zero.
+      command: >-
+        mkdir -p ./reports && kicad-cli sch erc ./buck-converter-3v3.kicad_sch
+        --format json --output ./reports/buck-converter-3v3-erc.json --exit-code-violations &&
+        test -s ./reports/buck-converter-3v3-erc.json
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: pcb_drc_clean
+      description: KiCad DRC reports no violations and returns zero.
+      command: >-
+        mkdir -p ./reports && kicad-cli pcb drc ./buck-converter-3v3.kicad_pcb
+        --format json --output ./reports/buck-converter-3v3-drc.json --exit-code-violations &&
+        test -s ./reports/buck-converter-3v3-drc.json
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: gerber_export_succeeds
+      description: Export all fabrication layers with the verified KiCad 9 command.
+      command: >-
+        rm -rf ./gerbers && mkdir -p ./gerbers && kicad-cli pcb export gerbers
+        ./buck-converter-3v3.kicad_pcb --output ./gerbers
+        --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,F.Paste,B.Paste,Edge.Cuts --no-x2
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: drill_export_succeeds
+      description: Excellon drill export returns zero and writes a non-empty file.
+      command: >-
+        kicad-cli pcb export drill ./buck-converter-3v3.kicad_pcb
+        --output ./gerbers --format excellon && test -s ./gerbers/buck-converter-3v3.drl
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_fabrication_outputs_present
+      description: The required copper, mask, silk, outline, drill, and job files are non-empty.
+      command: >-
+        for suffix in gtl gbl gts gbs gto gbo gtp gbp gm1 drl gbrjob; do
+          test "$(find ./gerbers -maxdepth 1 -type f -name "*.$suffix" -size +0c | wc -l)" -ge 1 || exit 1;
+        done
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: required_symbols_footprints_and_nets
+      description: Schematic and PCB text contain the required regulator, power-path footprints, and named nets.
+      command: >-
+        for token in TPS54331 15uH SS34 PowerPAD VIN_RAW VIN VOUT SW VFB BOOT GND; do
+          grep -Eiq "$token" ./buck-converter-3v3.kicad_sch || exit 1;
+        done &&
+        for token in TPS54331 PowerPAD 15uH D_SMA C_1210 F.Cu B.Cu Edge.Cuts; do
+          grep -Eiq "$token" ./buck-converter-3v3.kicad_pcb || exit 1;
+        done &&
+        for token in VIN_RAW VIN VOUT SW VFB BOOT GND; do
+          grep -Eiq "\"$token\"" ./buck-converter-3v3.kicad_pcb || exit 1;
+        done
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+    - name: setpoint_decoupling_protection_and_thermal_vias
+      description: Scriptable content checks enforce setpoint values, protection, copper width, zone, and PowerPAD vias.
+      command: >-
+        grep -Eiq '31\.6k|31k6|31600' ./BOM.csv ./buck-converter-3v3.kicad_sch &&
+        grep -Eiq '10\.0k|10k' ./BOM.csv ./buck-converter-3v3.kicad_sch &&
+        grep -Eiq '22uF|22u' ./BOM.csv ./buck-converter-3v3.kicad_sch &&
+        grep -Eiq '100.?n|100n' ./BOM.csv ./buck-converter-3v3.kicad_sch &&
+        grep -Eiq 'SMBJ18A|TVS|fuse|polyfuse' ./BOM.csv ./buck-converter-3v3.kicad_sch &&
+        grep -Eiq '3\.3|3V3' ./BOM.csv ./buck-converter-3v3.kicad_sch &&
+        grep -Eiq '12.?V|9.?V|18.?V|28.?V|3.?A|4.?A' ./BOM.csv ./design-notes.md ./buck-converter-3v3.kicad_sch &&
+        python3 -c 'import pathlib,re; t=pathlib.Path("./buck-converter-3v3.kicad_pcb").read_text(errors="replace"); assert any(float(v) >= 1.0 for v in re.findall(r"\(width\s+([0-9.]+)\)"); assert "(zone" in t; assert len(re.findall(r"\(via\b",t)) >= 5'
+      expected_exit_code: 0
+      pass: "exit_code == 0"
+  llm_judge:
+    enabled: false
+  weights:
+    deterministic: 1.0
+    llm_judge: 0.0
+prompt: &eval_prompt |
+    Create a complete KiCad 9 project in the current workspace for a 12 V nominal
+    to 3.3 V / 3 A asynchronous buck converter. Do not provide prose only: create
+    all files, then run the exact checks below and repair failures.
+
+    Electrical requirements:
+    - U1 is TPS54331DR (or an explicitly equivalent TPS54331), with a suitable
+      exposed-PowerPAD footprint. Use J1 for VIN=12 V and J2 for VOUT=3V3/GND.
+    - Connect VIN_RAW -> F1 -> VIN -> U1 SW -> L1=15uH -> VOUT. Use D1=SS34 from GND (anode) to
+      SW (cathode). Connect BOOT to SW through CBOOT=100nF and U1 PowerPAD to GND.
+    - Use C1=100nF and C2=22uF/25V on VIN; C3 and C4=22uF/6V3 on VOUT; CSS=10nF
+      from SS to GND. Set VFB using R1=31.6k from VOUT to VFB and R2=10.0k from
+      VFB to GND. Pull EN/UVLO to VIN through R3=100k.
+    - Operate from 9-18 Vdc (12 V nominal), regulate to 3.3 V +/-5% at up to 3 A,
+      and keep U1 below its 28 V absolute maximum. Use L1=15uH with Isat >=4 A.
+      Include F1 input over-current protection and D2=SMBJ18A (18 V standoff)
+      from VIN to GND. Name the nets VIN_RAW, VIN, GND, SW, VOUT, VFB, BOOT,
+      EN_UVLO, and SS. Annotate, assign the stated or equivalent footprints, and
+      create BOM.csv and design-notes.md with voltage/current ratings.
+
+    PCB requirements:
+    - Use exactly F.Cu and B.Cu on 1.6 mm FR-4, with a closed Edge.Cuts outline
+      and filled B.Cu GND zone. Use >=1.0 mm for VIN, VOUT, and SW tracks. Keep
+      the hot loop compact, separate VFB from SW, and provide at least five GND
+      thermal/stitching vias at the PowerPAD.
+    - Generate the fabrication files in ./gerbers/.
+
+    Run these commands from the project directory and fix any failures:
+      kicad-cli sch erc ./buck-converter-3v3.kicad_sch --format json --output ./reports/buck-converter-3v3-erc.json --exit-code-violations
+      kicad-cli pcb drc ./buck-converter-3v3.kicad_pcb --format json --output ./reports/buck-converter-3v3-drc.json --exit-code-violations
+      kicad-cli pcb export gerbers ./buck-converter-3v3.kicad_pcb --output ./gerbers --layers F.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,F.Paste,B.Paste,Edge.Cuts --no-x2
+      kicad-cli pcb export drill ./buck-converter-3v3.kicad_pcb --output ./gerbers --format excellon
+    ERC, DRC, Gerber export, and drill export must return status 0. Leave the
+    complete artifacts in the workspace; do not merely describe them.
+inputs:
+  prompt: *eval_prompt
+  base_files: []
+  environment: docker://kicad/kicad:9.0
+  working_dir: ./workspace
+outputs:
+  - ./buck-converter-3v3.kicad_pro
+  - ./buck-converter-3v3.kicad_sch
+  - ./buck-converter-3v3.kicad_pcb
+  - ./BOM.csv
+  - ./design-notes.md
+  - ./gerbers/*.gtl
+  - ./gerbers/*.gbl
+  - ./gerbers/*.gts
+  - ./gerbers/*.gbs
+  - ./gerbers/*.gto
+  - ./gerbers/*.gbo
+  - ./gerbers/*.gtp
+  - ./gerbers/*.gbp
+  - ./gerbers/*.gm1
+  - ./gerbers/*.drl
+  - ./gerbers/*.gbrjob
+difficulty: 4
+time_budget_minutes: 60
