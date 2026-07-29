@@ -820,6 +820,7 @@
         }).filter((item) => item.path);
       }
       // Convention: discover images under /docs/artifacts/<run-id>-*.png
+      // The published site lives under /agent-evals/ so URLs are relative to /docs/.
       const runId = text(record.run_id || record.runId);
       if (!runId) return [];
       const base = '../artifacts/';
