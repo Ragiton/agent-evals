@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T00:20:35.536854Z",
+  "generated_at": "2026-07-29T00:21:56.709009Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -946,6 +946,33 @@
             "tic** | **FAIL** | Loads in KiCad 9, but ERC is not clean (~27 errors, ~103 warnings): `pin_not_connected` on passives/555 (wires",
             "in the same folder. |\\n| **PCB** | **FAIL** | DRC exit 5: **136 violations**, **2 unconnected** items; mostly solder-mask bridges near"
           ]
+        },
+        "narrative": {
+          "headline": "The agent produced a complete LED-blinky artifact set, but validation remained substantially failing.",
+          "what_happened": [
+            "It reported shell access was blocked and created/searched KiCad-format files manually.",
+            "It delegated KiCad file generation to a subagent with shell access.",
+            "It inspected the generated deliverables and attempted to address ERC/DRC issues.",
+            "It cleaned the workspace to avoid the grader selecting a debug schematic via a *.kicad_sch glob.",
+            "It reported schematic ERC failure (~27 errors and ~103 warnings) and PCB DRC failure (136 violations and 2 unconnected items).",
+            "It reported Gerbers and BOM as present, with BOM.csv containing 9 parts and gerber/drill outputs."
+          ],
+          "engineering_findings": [
+            "The schematic loaded in KiCad 9 but ERC was not clean: the report cites pin_not_connected issues on passives/555, PWR_FLAG versus USB VBUS pin-to-pin, and an unconnected J1 shield.",
+            "The PCB DRC exited 5 with 136 violations and 2 unconnected items; the transcript attributes many violations to solder-mask bridges near USB-C where B.Cu VBUS runs past GND pads.",
+            "The board was reported as 50\u00d730 mm, 1.6 mm thick, with a B.Cu GND pour, USB-C receptacle footprint USB_C_Receptacle_GCT_USB4085, VBUS net 1, and 0.5\u20130.6 mm VBUS tracks.",
+            "Gerber export was reported as RS-274X with .gtl, .gbl, and .drl present, while the heuristic summary separately records that gerber export did not complete cleanly; the transcript does not resolve this discrepancy.",
+            "The transcript states the KiCad 9 ERC option is --exit-code-violations rather than --exit-code, and notes a prior harness failure caused by a debug schematic being selected by the glob."
+          ],
+          "what_was_unusual": "The run reports a full set of artifacts despite shell access being blocked, using manual file creation plus delegation; it also had an unusual grader-selection hazard from an extra debug schematic in the same directory.",
+          "follow_up_for_next_run": [
+            "Create or delegate the project with shell access from the start, then run the exact grader commands against the intended single schematic.",
+            "Fix schematic pin geometry and explicitly resolve the PWR_FLAG/VBUS and J1 shield ERC findings before finalizing.",
+            "Rework USB-C-area PCB clearances and routing, especially the B.Cu VBUS path near GND pads, then rerun DRC until zero violations and zero unconnected items.",
+            "Use the exact board dimensions, VBUS width, and footprint requirements from the evaluation specification rather than the reported 50\u00d730 mm and 0.5\u20130.6 mm tracks.",
+            "Confirm the complete gerber/drill export and its exit status independently, since the transcript and heuristic summary disagree."
+          ],
+          "confidence": "medium"
         }
       }
     },
@@ -1412,6 +1439,33 @@
             "Want me to resume from the UUID rewrite and finish the rest in a fresh",
             "ration budget reached (60/60) \u2014 response may be incomplete  Resume this session with:   hermes --resume 20260726_113733_5716ca  Session:"
           ]
+        },
+        "narrative": {
+          "headline": "The agent designed part of the USB-C host project but ran out of turns before producing a passing artifact.",
+          "what_happened": [
+            "It confirmed KiCad 9.0.8 and inspected the eval specification, KiCad CLI flag reference, and installed libraries.",
+            "It discovered AP2331 and the exact requested DFN footprint were absent, and planned AP2161W and a closest DFN footprint as substitutions.",
+            "It planned the USB-C DFP net topology, including 56k CC pull-ups, a current-limited VBUS path, USB data ESD, and a B.Cu ground zone.",
+            "It wrote a project file and a large schematic containing the required component set, nets, labels, and notes.",
+            "ERC attempts segfaulted; it reproduced the issue with a one-resistor minimal schematic and narrowed the trigger to placeholder-style pin UUIDs.",
+            "It replaced the minimal test UUIDs with real-looking RFC-4122 UUIDs but reached the 60/60 iteration limit before rewriting the project or creating the PCB, BOM, notes, reports, and gerbers."
+          ],
+          "engineering_findings": [
+            "KiCad CLI 9.0.8 segfaulted at SIGSEGV @ 0x40 on the generated schematic; the transcript ruled out --exit-code-violations by showing that flag worked on the StickHub demo.",
+            "The crash was reproduced on a one-resistor schematic when pin UUIDs used the placeholder pattern b1111111-0000-0000-0000-...; removing pin UUIDs made the minimal file work, and replacing them with real-looking hex UUIDs was the last tested direction.",
+            "The stock libraries lacked AP2331 and the exact DFN-6-1EP_1.6x1.6mm footprint; the agent identified AP2161W as an equivalent 1 A current-limited switch and a 2x1.6 mm DFN as the closest footprint.",
+            "The planned USB-C source topology used R1/R2=56k Rp pull-ups, HOST_5V_RAW through F1, HOST_5V into U2, U2 output to VBUS, and USB_DP/USB_DM through U1 to J2; these were planned/written but not validated end-to-end.",
+            "At termination, the transcript explicitly says no PCB, BOM, or design notes existed, reports/ was empty, gerbers/ was empty, and the required CLI checks had not returned success."
+          ],
+          "what_was_unusual": "The agent found a specific low-level KiCad parser crash and isolated it with a minimal reduction rather than merely treating ERC as a normal violation; however, this debugging consumed the entire 60-call budget before the actual board could be completed.",
+          "follow_up_for_next_run": [
+            "Generate every schematic UUID as a real RFC-4122 hexadecimal UUID from the outset, including symbol, pin, wire, junction, label, text, and sheet UUIDs.",
+            "Use a known-good KiCad schematic template or programmatic UUID generation, then run ERC on a minimal valid file before scaling to all components.",
+            "Preflight required symbols and footprints before writing the design, and document AP2161W/closest-footprint substitutions explicitly while preserving the allowed equivalent-switch requirement.",
+            "Prioritize completion of the PCB, BOM, design notes, and fabrication outputs before exploratory debugging consumes the full turn budget.",
+            "Run all four required CLI commands plus the deterministic grader checks and record their actual exit statuses before reporting completion."
+          ],
+          "confidence": "high"
         }
       }
     },
