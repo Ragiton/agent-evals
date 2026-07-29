@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T00:07:48.651852Z",
+  "generated_at": "2026-07-29T00:20:35.536854Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -556,7 +556,18 @@
       "cost_usd": null,
       "usage": null,
       "skill": null,
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "20260725T220900Z-deadbe",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": null,
+        "transcript_size_bytes": 15,
+        "verdict": "no notable signals extracted from transcript",
+        "actions": [],
+        "issues": [],
+        "observations": []
+      }
     },
     {
       "run_id": "run-002-led-blinky-cursor",
@@ -626,7 +637,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": null,
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-002-led-blinky-cursor",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "12m 0s",
+        "transcript_size_bytes": 30,
+        "verdict": "see issues below",
+        "actions": [],
+        "issues": [
+          "run was cut short by the $2 budget cap"
+        ],
+        "observations": [],
+        "evidence": {
+          "budget_exhausted": [
+            "Error: Exceeded USD budget (2)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-003-led-blinky-cursor",
@@ -881,7 +910,44 @@
       "cost_usd": null,
       "usage": null,
       "skill": null,
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-003-led-blinky-cursor",
+        "agent": "cursor-agent",
+        "model": "composer-2.5",
+        "duration_estimate": "17m 0s",
+        "transcript_size_bytes": 3903,
+        "verdict": "completed artifacts but ERC and DRC both report violations",
+        "actions": [],
+        "issues": [
+          "ERC reported violations in the schematic",
+          "DRC reported violations in the PCB",
+          "gerber export did not complete cleanly"
+        ],
+        "observations": [
+          "tic** | **FAIL** | Loads in KiCad 9, but ERC is not clean (~27 errors, ~103 warnings): `pin_not_connected` on passives/555 (wires",
+          "in the same folder. |\\n| **PCB** | **FAIL** | DRC exit 5: **136 violations**, **2 unconnected** items; mostly solder-mask bridges near"
+        ],
+        "evidence": {
+          "erc_failure": [
+            "------|\\n| **Schematic** | **FAIL** | Loads in KiCad 9, but ERC is not clean (~27 errors, ~103 warnings): `pin_not_connected` on passives/555 (wire",
+            "m it. From the run we already know KiCad 9\u2019s `kicad-cli sch erc` does **not** support `--exit-code`; use **`--exit-code-violations`** instead, and there\u2019s no separate non-interactive \u201csave"
+          ],
+          "drc_failure": [
+            "_*.kicad_sch` in the same folder. |\\n| **PCB** | **FAIL** | DRC exit 5: **136 violations**, **2 unconnected** items; mostly solder-mask bridges nea"
+          ],
+          "gerber_export_failure": [
+            "erbers/led-blinky.drl         919\\n```\\n\\n(Additional KiCad exports in `gerbers/`: masks, silk, edge cuts, job file.)\\n\\n### PASS / FAIL\\n\\n| Deliverable | Result | Notes |\\n|-------------|-------"
+          ],
+          "ran_validation": [
+            "_*.kicad_sch` in the same folder. |\\n| **PCB** | **FAIL** | DRC exit 5: **136 violations**, **2 unconnected** items; mostly solder"
+          ],
+          "self_reported_score": [
+            "tic** | **FAIL** | Loads in KiCad 9, but ERC is not clean (~27 errors, ~103 warnings): `pin_not_connected` on passives/555 (wires",
+            "in the same folder. |\\n| **PCB** | **FAIL** | DRC exit 5: **136 violations**, **2 unconnected** items; mostly solder-mask bridges near"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-004-bme280-mash",
@@ -901,7 +967,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "mash-kicad-skills",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-004-bme280-mash",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "1 s",
+        "transcript_size_bytes": 61,
+        "verdict": "session limit hit before run could start",
+        "actions": [],
+        "issues": [
+          "CLI session limit was hit before the run could start"
+        ],
+        "observations": [],
+        "evidence": {
+          "session_limit": [
+            "You've hit your session limit \u00b7 resets 1pm (America/Denver)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-005-usb-c-baseline",
@@ -921,7 +1005,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-005-usb-c-baseline",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "2 s",
+        "transcript_size_bytes": 61,
+        "verdict": "session limit hit before run could start",
+        "actions": [],
+        "issues": [
+          "CLI session limit was hit before the run could start"
+        ],
+        "observations": [],
+        "evidence": {
+          "session_limit": [
+            "You've hit your session limit \u00b7 resets 1pm (America/Denver)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-006-buck-baseline",
@@ -941,7 +1043,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-006-buck-baseline",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "1 s",
+        "transcript_size_bytes": 61,
+        "verdict": "session limit hit before run could start",
+        "actions": [],
+        "issues": [
+          "CLI session limit was hit before the run could start"
+        ],
+        "observations": [],
+        "evidence": {
+          "session_limit": [
+            "You've hit your session limit \u00b7 resets 1pm (America/Denver)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-007-esp32-baseline",
@@ -961,7 +1081,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-007-esp32-baseline",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "1 s",
+        "transcript_size_bytes": 61,
+        "verdict": "session limit hit before run could start",
+        "actions": [],
+        "issues": [
+          "CLI session limit was hit before the run could start"
+        ],
+        "observations": [],
+        "evidence": {
+          "session_limit": [
+            "You've hit your session limit \u00b7 resets 1pm (America/Denver)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-008-usb-c-minimax",
@@ -1222,7 +1360,60 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline-minimax",
-      "max_budget_usd": null
+      "max_budget_usd": null,
+      "summary": {
+        "run_id": "run-008-usb-c-minimax",
+        "agent": "hermes-cli",
+        "model": "MiniMax-M3",
+        "duration_estimate": "7m 11s",
+        "transcript_size_bytes": 59109,
+        "verdict": "agent ran out of tool turns; partial artifacts at best",
+        "actions": [
+          "installed KiCad or related libraries",
+          "wrote primary KiCad project files",
+          "produced at least 2 KiCad output file(s)"
+        ],
+        "issues": [
+          "agent ran out of tool turns before finishing",
+          "kicad-cli crashed mid-run",
+          "ERC reported violations in the schematic",
+          "DRC reported violations in the PCB",
+          "a required component was missing from the stock KiCad libraries",
+          "agent self-reported being unable to finish within the tool budget"
+        ],
+        "observations": [],
+        "evidence": {
+          "kicad_crash": [
+            "h. Root cause: kicad-cli 9.0.8                   segfaults (SIGSEGV @ 0x40) when pin UUIDs use the",
+            "eet UUID) with proper RFC-4122 hex             strings. The kicad-cli crash appears to be a parser/validator                    null-de",
+            "/home/ragiton/usb-c-host-only.kicad_sch (causes kicad-cli to segfault            \u2014 needs UUID fix), /home/ragiton/reports/ (empty"
+          ],
+          "erc_failure": [
+            "kicad_sch --format json --output  ./reports/usb-c-host-only-erc.json --exit-code-violations   kicad-cli pcb drc ./usb-c-host-only.kicad_pcb --format j",
+            ".kicad_sch --format json --output ./reports/usb-c-host-only-erc.json --exit-code-violations  0.3s  \u256d\u2500 \u2695 Hermes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+          ],
+          "drc_failure": [
+            "kicad_pcb --format json --output  ./reports/usb-c-host-only-drc.json --exit-code-violations   kicad-cli pcb export gerbers ./usb-c-host-only.kicad_pcb"
+          ],
+          "iteration_budget": [
+            "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500   \u26a0 Iteration budget reached (60/60) \u2014 response may be incomplete  Resume this session w"
+          ],
+          "missing_component": [
+            "all footprints.                                           - Missing from stock: AP2331, exact DFN-6-1EP_1.6x1.6mm_...                    f"
+          ],
+          "library_install": [
+            "the actual eval run dirs more carefully and search for     installed KiCad library data: \u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+          ],
+          "ran_validation": [
+            "erc ./usb-c-host-only.kicad_sch --format json --output /tmp/erc.json + 1 command  0.3s [exit 1]   \u250a \ud83d\udcbb preparing terminal\u2026   \u250a \ud83d\udcbb $         kicad-cli sch er"
+          ],
+          "gave_up": [
+            "this on a 1-resistor minimal               schematic, then ran out of tool calls before rewriting the UUIDs.",
+            "Want me to resume from the UUID rewrite and finish the rest in a fresh",
+            "ration budget reached (60/60) \u2014 response may be incomplete  Resume this session with:   hermes --resume 20260726_113733_5716ca  Session:"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-009-bme280-baseline",
@@ -1242,7 +1433,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-009-bme280-baseline",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "27m 43s",
+        "transcript_size_bytes": 30,
+        "verdict": "see issues below",
+        "actions": [],
+        "issues": [
+          "run was cut short by the $2 budget cap"
+        ],
+        "observations": [],
+        "evidence": {
+          "budget_exhausted": [
+            "Error: Exceeded USD budget (2)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-010-usb-c-baseline",
@@ -1262,7 +1471,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-010-usb-c-baseline",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "10m 24s",
+        "transcript_size_bytes": 61,
+        "verdict": "session limit hit before run could start",
+        "actions": [],
+        "issues": [
+          "CLI session limit was hit before the run could start"
+        ],
+        "observations": [],
+        "evidence": {
+          "session_limit": [
+            "You've hit your session limit \u00b7 resets 6pm (America/Denver)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-011-buck-baseline",
@@ -1282,7 +1509,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-011-buck-baseline",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "2 s",
+        "transcript_size_bytes": 61,
+        "verdict": "session limit hit before run could start",
+        "actions": [],
+        "issues": [
+          "CLI session limit was hit before the run could start"
+        ],
+        "observations": [],
+        "evidence": {
+          "session_limit": [
+            "You've hit your session limit \u00b7 resets 6pm (America/Denver)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-012-esp32-baseline",
@@ -1302,7 +1547,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-012-esp32-baseline",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "1 s",
+        "transcript_size_bytes": 61,
+        "verdict": "session limit hit before run could start",
+        "actions": [],
+        "issues": [
+          "CLI session limit was hit before the run could start"
+        ],
+        "observations": [],
+        "evidence": {
+          "session_limit": [
+            "You've hit your session limit \u00b7 resets 6pm (America/Denver)"
+          ]
+        }
+      }
     },
     {
       "run_id": "run-013-impedance-baseline",
@@ -1322,7 +1585,25 @@
       "cost_usd": null,
       "usage": null,
       "skill": "baseline",
-      "max_budget_usd": 2.0
+      "max_budget_usd": 2.0,
+      "summary": {
+        "run_id": "run-013-impedance-baseline",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "duration_estimate": "2 s",
+        "transcript_size_bytes": 61,
+        "verdict": "session limit hit before run could start",
+        "actions": [],
+        "issues": [
+          "CLI session limit was hit before the run could start"
+        ],
+        "observations": [],
+        "evidence": {
+          "session_limit": [
+            "You've hit your session limit \u00b7 resets 6pm (America/Denver)"
+          ]
+        }
+      }
     }
   ]
 }

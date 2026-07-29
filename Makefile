@@ -17,7 +17,7 @@ LLM_JUDGE_MODEL ?= gpt-5.6-luna
 GRADER_MODEL ?= gpt-5.6-luna
 
 .PHONY: list run-001 run-002 run-003 run-004 run-005 run-006 \
-        grade cross-grade aggregate serve install clean status verify
+        grade cross-grade aggregate serve install clean status verify summarize
 
 # Show all eval specs
 list:
@@ -48,6 +48,11 @@ run-eval:
 RUN_DIR ?= results/runs/run-001-led-blinky
 grade:
 	@python3 harness/grader.py --run $(RUN_DIR)
+
+# Per-run heuristic transcript summary (no LLM cost)
+RUN_DIR ?= results/runs/run-001-led-blinky
+summarize:
+	@python3 harness/summarize_transcript.py --run $(RUN_DIR)
 
 # Cross-CLI validation
 RUN_DIR ?= results/runs/run-001-led-blinky

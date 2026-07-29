@@ -1186,6 +1186,35 @@
       }).join('')}</ul></div>`).join('')}</div>`;
     }
 
+    function renderRunSummary(run) {
+      const summary = obj(run.summary);
+      const verdict = text(summary.verdict);
+      const issues = arr(summary.issues);
+      const actions = arr(summary.actions);
+      const observations = arr(summary.observations);
+      const narrative = obj(summary.narrative);
+      if (!verdict && !issues.length && !actions.length && !observations.length && !narrative.headline) {
+        return '';
+      }
+      const issuesBlock = issues.length
+        ? `<div class="subpanel" style="margin-top:12px"><h3>What went wrong</h3><div class="subpanel-body"><ul class="check-list">${issues.map((issue) => `<li class="check-item"><div class="check-main"><span class="check-icon pending">!</span><span class="check-name">${escapeHtml(String(issue))}</span></div></li>`).join('')}</ul></div></div>`
+        : '';
+      const actionsBlock = actions.length
+        ? `<div class="subpanel" style="margin-top:12px"><h3>What the agent did</h3><div class="subpanel-body"><ul class="check-list">${actions.map((action) => `<li class="check-item"><div class="check-main"><span class="check-icon pass">+</span><span class="check-name">${escapeHtml(String(action))}</span></div></li>`).join('')}</ul></div></div>`
+        : '';
+      const observationsBlock = observations.length
+        ? `<div class="subpanel" style="margin-top:12px"><h3>Self-reported numbers</h3><div class="subpanel-body">${observations.map((o) => `<pre>${escapeHtml(prettyValue(o))}</pre>`).join('')}</div></div>`
+        : '';
+      const duration = text(summary.duration_estimate);
+      const size = toFiniteNumber(summary.transcript_size_bytes);
+      const header = `<div class="view-header"><div><p class="eyebrow">Transcript review</p><h2>What we observed</h2><p class="lede">A heuristic extraction of concrete signals from the agent's transcript — installed tools, errors hit, validation results. ${duration ? `Run lasted about <strong>${escapeHtml(duration)}</strong>.` : ''} ${size !== null ? `Transcript: <strong>${size.toLocaleString()}</strong> bytes.` : ''}</p></div></div>`;
+
+      const narrativeBlock = narrative.headline
+        ? `<div class="panel"><div class="panel-heading"><h3>Narrative review</h3><span class="hint">delegated sub-agent · confidence ${escapeHtml(text(narrative.confidence, 'unknown'))}</span></div><div class="panel-body prose"><p><strong>${escapeHtml(text(narrative.headline))}</strong></p>${arr(narrative.what_happened).length ? `<h4>What happened</h4><ul>${arr(narrative.what_happened).map((b) => `<li>${escapeHtml(String(b))}</li>`).join('')}</ul>` : ''}${arr(narrative.engineering_findings).length ? `<h4>Engineering findings</h4><ul>${arr(narrative.engineering_findings).map((b) => `<li>${escapeHtml(String(b))}</li>`).join('')}</ul>` : ''}${narrative.what_was_unusual ? `<h4>What was unusual</h4><p>${escapeHtml(String(narrative.what_was_unusual))}</p>` : ''}${arr(narrative.follow_up_for_next_run).length ? `<h4>Follow-up for next run</h4><ul>${arr(narrative.follow_up_for_next_run).map((b) => `<li>${escapeHtml(String(b))}</li>`).join('')}</ul>` : ''}</div></div>`
+        : '';
+      return `<section>${header}<div class="panel"><div class="panel-heading"><h3>Summary verdict</h3></div><div class="panel-body prose"><p>${escapeHtml(verdict || 'no notable signals extracted from transcript')}</p></div></div>${issuesBlock}${actionsBlock}${observationsBlock}${narrativeBlock}</section>`;
+    }
+
     function renderRunImages(run) {
       const images = Array.isArray(run.images) ? run.images.filter((image) => image && image.url) : [];
       if (!images.length) return '';
@@ -1242,6 +1271,7 @@
         <dl class="meta-grid"><div class="meta-item"><dt>status</dt><dd>${statusMarkup(run.status)}</dd></div><div class="meta-item"><dt>agent</dt><dd>${escapeHtml(run.agent)}</dd></div><div class="meta-item"><dt>model</dt><dd class="mono">${escapeHtml(run.model || '—')}</dd></div><div class="meta-item"><dt>skill</dt><dd>${chipMarkup(labelSkill(run.skill), run.skill ? 'teal' : 'ochre')}</dd></div><div class="meta-item"><dt>exit code</dt><dd class="mono">${run.exitCode === null ? '—' : escapeHtml(String(run.exitCode))}</dd></div><div class="meta-item"><dt>duration</dt><dd class="mono">${formatDuration(run.durationMs)}</dd></div><div class="meta-item"><dt>started</dt><dd class="time">${escapeHtml(formatDate(run.startedAt))}</dd></div><div class="meta-item"><dt>finished</dt><dd class="time">${escapeHtml(formatDate(run.finishedAt))}</dd></div><div class="meta-item"><dt>graded</dt><dd class="time">${escapeHtml(formatDate(run.gradedAt))}</dd></div><div class="meta-item"><dt>actual cost</dt><dd>${formatCost(run.costUsd)}</dd></div><div class="meta-item"><dt>budget cap</dt><dd class="mono">${run.costCap === null ? '—' : '$' + run.costCap.toFixed(2)}<div class="row-subtitle">cap is not spend</div></dd></div></dl>
         <div class="score-rail"><div class="score-box"><div class="label">final score</div><div class="value ${run.status}">${formatScore(run.finalScore)}</div><div class="sub">best is not implied</div></div><div class="score-box"><div class="label">threshold</div><div class="value">${formatThreshold(threshold)}</div><div class="sub">from eval contract</div></div><div class="score-box"><div class="label">deterministic</div><div class="value">${formatScore(run.deterministicScore)}</div><div class="sub">${run.deterministic.length} check${run.deterministic.length === 1 ? '' : 's'}</div></div><div class="score-box"><div class="label">verdict</div><div class="value ${run.status}">${escapeHtml(statusLabel(run.status))}</div><div class="sub">${run.passed === null ? 'not explicitly graded' : run.passed ? 'passed = true' : 'passed = false'}</div></div><div class="score-box"><div class="label">LLM judge</div><div class="value">${run.llmJudge === null ? 'deferred' : 'captured'}</div><div class="sub">null is not a failed judge</div></div></div>
         <div class="panel"><div class="panel-heading"><h2>Grader breakdown</h2><span class="hint">evidence stays attached to each check</span></div><div class="panel-body">${run.deterministic.length ? `<ul class="check-list">${run.deterministic.map(renderCheck).join('')}</ul>` : '<div class="empty-state"><strong>No deterministic checks</strong><p>This run has no check records in results.json.</p></div>'}${run.llmJudge !== null ? `<div class="subpanel" style="margin-top:14px"><h3>LLM judge</h3><div class="subpanel-body"><pre>${escapeHtml(prettyValue(run.llmJudge))}</pre></div></div>` : '<p class="not-included" style="margin-top:14px">LLM judge is deferred or absent; this is not rendered as a failed grade.</p>'}<div class="subpanel" style="margin-top:14px"><h3>Cross-grades</h3><div class="subpanel-body">${renderCrossGrades(run)}</div></div></div></div>
+        ${renderRunSummary(run)}
         <div class="panel"><div class="panel-heading"><h2>Transcript</h2><span class="hint">structured JSON is pretty-printed; plain text is preserved</span></div><div class="panel-body">${renderTranscript(run)}</div></div>
         <div class="panel"><div class="panel-heading"><h2>Tool calls</h2><span class="hint">only explicit records are shown</span></div><div class="panel-body">${renderToolCalls(run)}</div></div>
         ${renderRunCost(run)}

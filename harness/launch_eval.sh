@@ -59,6 +59,10 @@ else
 fi
 set -e
 
+# Always run the transcript summarizer so every future run carries a
+# summary.json into the aggregate.
+python3 "$ROOT/harness/summarize_transcript.py" --run "$RUN_DIR" >/dev/null 2>&1 || true
+
 python3 - "$RUN_DIR" "$RC" <<'PY'
 import json, pathlib, sys, datetime, re
 run_dir, rc = sys.argv[1], int(sys.argv[2])

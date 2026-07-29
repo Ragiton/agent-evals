@@ -80,7 +80,14 @@ def aggregate_run(run_dir: pathlib.Path) -> dict | None:
         "usage": run.get("usage"),
         "skill": run.get("condition"),
         "max_budget_usd": run.get("max_budget_usd"),
+        "summary": None,
     }
+    summary_path = run_dir / "summary.json"
+    if summary_path.exists():
+        try:
+            out["summary"] = json.loads(summary_path.read_text())
+        except Exception:
+            out["summary"] = None
     if grade_json.exists():
         g = json.loads(grade_json.read_text())
         out["deterministic"] = g.get("deterministic", [])
