@@ -391,6 +391,10 @@
     .time { color: var(--muted); font: 11px var(--mono); white-space: nowrap; }
 
     .artifact-groups { display: grid; gap: 13px; }
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+    .image-frame { margin: 0; border: 1px solid var(--line); background: var(--surface-2); }
+    .image-frame img { display: block; width: 100%; height: auto; background: #0d0f11; }
+    .image-frame figcaption { padding: 8px 11px; color: var(--muted); font: 11px var(--mono); border-top: 1px solid var(--line); }
     .artifact-group h3 { margin-bottom: 5px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
     .artifact-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
     .artifact-item {
@@ -801,6 +805,31 @@
       };
     }
 
+    function normalizeImages(record) {
+      const explicit = arr(record.images);
+      if (explicit.length) {
+        return explicit.map((item) => {
+          const obj2 = typeof item === 'string' ? { path: item } : item;
+          const path = text(obj2.path);
+          return {
+            path,
+            label: text(obj2.label || obj2.name || path),
+            url: text(obj2.url || path),
+            alt: text(obj2.alt || obj2.label || path)
+          };
+        }).filter((item) => item.path);
+      }
+      // Convention: discover images under /docs/artifacts/<run-id>-*.png
+      const runId = text(record.run_id || record.runId);
+      if (!runId) return [];
+      const base = '../artifacts/';
+      const candidates = [
+        { path: `${runId}-top.png`, label: 'PCB top view', alt: `${runId} PCB top view` },
+        { path: `${runId}-iso.png`, label: 'PCB isometric', alt: `${runId} PCB isometric` }
+      ];
+      return candidates.map((item) => ({ ...item, url: `${base}${item.path}` }));
+    }
+
     function normalizeRun(record, index) {
       const usage = obj(record.usage);
       const score = toFiniteNumber(record.final_score);
@@ -836,7 +865,8 @@
         artifacts: normalizeArtifacts(record),
         transcript: normalizeTranscript(record),
         toolCalls: Array.isArray(record.tool_calls) ? record.tool_calls : (Array.isArray(record.toolCalls) ? record.toolCalls : null),
-        capturedFiles: arr(record.captured_files || record.capturedFiles)
+        capturedFiles: arr(record.captured_files || record.capturedFiles),
+        images: normalizeImages(record)
       };
     }
 
@@ -1155,6 +1185,32 @@
       }).join('')}</ul></div>`).join('')}</div>`;
     }
 
+    function renderRunImages(run) {
+      const images = Array.isArray(run.images) ? run.images.filter((image) => image && image.url) : [];
+      if (!images.length) return '';
+      return `<div class="panel"><div class="panel-heading"><h2>Rendered outputs</h2><span class="hint">PCB renders from this run · published from <code>/docs/artifacts/</code></span></div><div class="panel-body"><div class="image-grid">${images.map((image) => {
+        const caption = escapeHtml(image.label || image.path || 'rendered output');
+        const alt = escapeAttr(image.alt || caption);
+        return `<figure class="image-frame"><a href="${escapeAttr(image.url)}" target="_blank" rel="noopener"><img loading="lazy" src="${escapeAttr(image.url)}" alt="${alt}"></a><figcaption>${caption}</figcaption></figure>`;
+      }).join('')}</div></div></div>`;
+    }
+
+    function renderRunCost(run) {
+      const cost = toFiniteNumber(run.costUsd);
+      const usage = obj(run.usage);
+      const inTokens = toFiniteNumber(usage.input_tokens);
+      const outTokens = toFiniteNumber(usage.output_tokens);
+      const cap = toFiniteNumber(run.costCap);
+      if (cost === null && inTokens === null && outTokens === null) return '';
+      const tokensLine = (inTokens !== null || outTokens !== null)
+        ? `<div class="meta-item"><dt>tokens</dt><dd class="mono">in ${inTokens === null ? '—' : inTokens.toLocaleString()} · out ${outTokens === null ? '—' : outTokens.toLocaleString()}</dd></div>`
+        : '';
+      const capLine = cap !== null ? `<div class="row-subtitle">budget cap $${cap.toFixed(2)} is not spend</div>` : '';
+      const value = cost !== null ? `$${cost.toFixed(4)}` : 'tokens only';
+      const note = cost !== null ? 'captured from CLI JSON envelope' : 'no per-call USD exposed by this CLI';
+      return `<div class="panel"><div class="panel-heading"><h2>Cost &amp; token capture</h2><span class="hint">per-invocation spend where the CLI emits it</span></div><div class="panel-body"><div class="score-rail"><div class="score-box"><div class="label">actual cost</div><div class="value">${escapeHtml(value)}</div><div class="sub">${escapeHtml(note)}</div></div><div class="score-box"><div class="label">input tokens</div><div class="value">${inTokens === null ? '—' : inTokens.toLocaleString()}</div><div class="sub">${capLine}</div></div><div class="score-box"><div class="label">output tokens</div><div class="value">${outTokens === null ? '—' : outTokens.toLocaleString()}</div><div class="sub">from CLI JSON envelope</div></div></div></div></div>`;
+    }
+
     function renderTranscript(run) {
       const transcript = run.transcript;
       if (!transcript) return `<div class="empty-state"><strong>Transcript not captured</strong><p>stdout.txt and stderr.txt were not included in the aggregate. The run may still link to those files when a published run directory is available.</p></div>`;
@@ -1187,6 +1243,8 @@
         <div class="panel"><div class="panel-heading"><h2>Grader breakdown</h2><span class="hint">evidence stays attached to each check</span></div><div class="panel-body">${run.deterministic.length ? `<ul class="check-list">${run.deterministic.map(renderCheck).join('')}</ul>` : '<div class="empty-state"><strong>No deterministic checks</strong><p>This run has no check records in results.json.</p></div>'}${run.llmJudge !== null ? `<div class="subpanel" style="margin-top:14px"><h3>LLM judge</h3><div class="subpanel-body"><pre>${escapeHtml(prettyValue(run.llmJudge))}</pre></div></div>` : '<p class="not-included" style="margin-top:14px">LLM judge is deferred or absent; this is not rendered as a failed grade.</p>'}<div class="subpanel" style="margin-top:14px"><h3>Cross-grades</h3><div class="subpanel-body">${renderCrossGrades(run)}</div></div></div></div>
         <div class="panel"><div class="panel-heading"><h2>Transcript</h2><span class="hint">structured JSON is pretty-printed; plain text is preserved</span></div><div class="panel-body">${renderTranscript(run)}</div></div>
         <div class="panel"><div class="panel-heading"><h2>Tool calls</h2><span class="hint">only explicit records are shown</span></div><div class="panel-body">${renderToolCalls(run)}</div></div>
+        ${renderRunCost(run)}
+        ${renderRunImages(run)}
         <div class="panel"><div class="panel-heading"><h2>Captured files</h2><span class="hint">safe relative links · diagnostics stay secondary</span></div><div class="panel-body">${renderArtifacts(run.artifacts)}</div></div>
         ${run.notes ? `<div class="panel"><div class="panel-heading"><h2>Run notes</h2></div><div class="panel-body prose"><p>${escapeHtml(run.notes)}</p></div></div>` : ''}
       </section>`;

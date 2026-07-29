@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-26T17:46:22.698885Z",
+  "generated_at": "2026-07-29T00:07:48.651852Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -552,7 +552,11 @@
       "final_score": null,
       "passed": null,
       "llm_judge": null,
-      "cross_grades": []
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": null,
+      "max_budget_usd": 2.0
     },
     {
       "run_id": "run-002-led-blinky-cursor",
@@ -618,7 +622,11 @@
       "final_score": 0.7142857142857143,
       "passed": true,
       "llm_judge": null,
-      "cross_grades": []
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": null,
+      "max_budget_usd": 2.0
     },
     {
       "run_id": "run-003-led-blinky-cursor",
@@ -869,7 +877,11 @@
       "final_score": 0.7777777777777778,
       "passed": false,
       "llm_judge": null,
-      "cross_grades": []
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": null,
+      "max_budget_usd": 2.0
     },
     {
       "run_id": "run-004-bme280-mash",
@@ -885,7 +897,11 @@
       "final_score": null,
       "passed": null,
       "llm_judge": null,
-      "cross_grades": []
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "mash-kicad-skills",
+      "max_budget_usd": 2.0
     },
     {
       "run_id": "run-005-usb-c-baseline",
@@ -901,7 +917,11 @@
       "final_score": null,
       "passed": null,
       "llm_judge": null,
-      "cross_grades": []
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline",
+      "max_budget_usd": 2.0
     },
     {
       "run_id": "run-006-buck-baseline",
@@ -917,7 +937,11 @@
       "final_score": null,
       "passed": null,
       "llm_judge": null,
-      "cross_grades": []
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline",
+      "max_budget_usd": 2.0
     },
     {
       "run_id": "run-007-esp32-baseline",
@@ -933,7 +957,11 @@
       "final_score": null,
       "passed": null,
       "llm_judge": null,
-      "cross_grades": []
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline",
+      "max_budget_usd": 2.0
     },
     {
       "run_id": "run-008-usb-c-minimax",
@@ -1190,7 +1218,111 @@
       "final_score": 0.0,
       "passed": false,
       "llm_judge": null,
-      "cross_grades": []
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline-minimax",
+      "max_budget_usd": null
+    },
+    {
+      "run_id": "run-009-bme280-baseline",
+      "spec_id": "bme280-sensor-breakout",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "started_at": "2026-07-26T19:05:07.829303+00:00",
+      "finished_at": "2026-07-26T19:32:51.165113+00:00",
+      "graded_at": null,
+      "exit_code": 1,
+      "deterministic": [],
+      "deterministic_score": null,
+      "final_score": null,
+      "passed": null,
+      "llm_judge": null,
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline",
+      "max_budget_usd": 2.0
+    },
+    {
+      "run_id": "run-010-usb-c-baseline",
+      "spec_id": "usb-c-host-only",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "started_at": "2026-07-26T19:45:08.179253+00:00",
+      "finished_at": "2026-07-26T19:55:32.369891+00:00",
+      "graded_at": null,
+      "exit_code": 1,
+      "deterministic": [],
+      "deterministic_score": null,
+      "final_score": null,
+      "passed": null,
+      "llm_judge": null,
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline",
+      "max_budget_usd": 2.0
+    },
+    {
+      "run_id": "run-011-buck-baseline",
+      "spec_id": "buck-converter-3v3",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "started_at": "2026-07-26T20:25:08.547199+00:00",
+      "finished_at": "2026-07-26T20:25:11.082218+00:00",
+      "graded_at": null,
+      "exit_code": 1,
+      "deterministic": [],
+      "deterministic_score": null,
+      "final_score": null,
+      "passed": null,
+      "llm_judge": null,
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline",
+      "max_budget_usd": 2.0
+    },
+    {
+      "run_id": "run-012-esp32-baseline",
+      "spec_id": "esp32-devboard-minimal",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "started_at": "2026-07-26T21:05:08.920015+00:00",
+      "finished_at": "2026-07-26T21:05:10.768333+00:00",
+      "graded_at": null,
+      "exit_code": 1,
+      "deterministic": [],
+      "deterministic_score": null,
+      "final_score": null,
+      "passed": null,
+      "llm_judge": null,
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline",
+      "max_budget_usd": 2.0
+    },
+    {
+      "run_id": "run-013-impedance-baseline",
+      "spec_id": "two-layer-impedance-match",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "started_at": "2026-07-26T21:45:09.275093+00:00",
+      "finished_at": "2026-07-26T21:45:11.333163+00:00",
+      "graded_at": null,
+      "exit_code": 1,
+      "deterministic": [],
+      "deterministic_score": null,
+      "final_score": null,
+      "passed": null,
+      "llm_judge": null,
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "baseline",
+      "max_budget_usd": 2.0
     }
   ]
 }

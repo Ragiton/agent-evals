@@ -1,0 +1,11 @@
+Reference,Value,Footprint,Quantity
+J1,USB_C_Receptacle,Connector_USB:USB_C_Receptacle_GCT_USB4085,1
+U1,NE555,Package_SO:SOIC-8_3.9x4.9mm_P1.27mm,1
+R1,1k,Resistor_SMD:R_0805_2012Metric,1
+R2,47k,Resistor_SMD:R_0805_2012Metric,1
+R3,330,Resistor_SMD:R_0805_2012Metric,1
+R4,1k,Resistor_SMD:R_0805_2012Metric,1
+C1,10uF,Capacitor_SMD:C_0805_2012Metric,1
+C2,10nF,Capacitor_SMD:C_0805_2012Metric,1
+D1,LED_RED,LED_SMD:LED_0805_2012Metric,1
+D2,LED_GREEN,LED_SMD:LED_0805_2012Metric,1

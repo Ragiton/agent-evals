@@ -76,6 +76,10 @@ def aggregate_run(run_dir: pathlib.Path) -> dict | None:
         "passed": None,
         "llm_judge": None,
         "cross_grades": [],
+        "cost_usd": run.get("cost_usd"),
+        "usage": run.get("usage"),
+        "skill": run.get("condition"),
+        "max_budget_usd": run.get("max_budget_usd"),
     }
     if grade_json.exists():
         g = json.loads(grade_json.read_text())
@@ -85,6 +89,12 @@ def aggregate_run(run_dir: pathlib.Path) -> dict | None:
         out["passed"] = g.get("passed")
         out["graded_at"] = g.get("graded_at")
         out["llm_judge"] = g.get("llm_judge")
+        # The grader may also have computed a cost from the envelope; prefer
+        # the run manifest's value (it's set by the launcher).
+        if out["cost_usd"] is None:
+            out["cost_usd"] = g.get("cost_usd")
+        if out["usage"] is None:
+            out["usage"] = g.get("usage")
     for cross_file in sorted(run_dir.glob("cross_grade_*.json")):
         c = json.loads(cross_file.read_text())
         out["cross_grades"].append({

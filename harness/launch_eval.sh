@@ -1,7 +1,6 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2026 Ragiton
 #!/usr/bin/env bash
 # Launch one bounded Claude Code engineering eval in an isolated workspace.
+# Captures per-call USD cost from the Claude JSON envelope.
 # Usage: launch_eval.sh <spec.yaml> <run-id> [skill]
 set -euo pipefail
 
@@ -45,26 +44,58 @@ set +e
 claude -p \
   --model claude-sonnet-4-6 \
   --permission-mode bypassPermissions \
+  --output-format json \
   --max-budget-usd 2.0 \
   --max-turns 80 \
   < "$RUN_DIR/prompt.txt" \
-  > "$RUN_DIR/stdout.txt" \
-  2> "$RUN_DIR/stderr.txt"
+  > "$RUN_DIR/stdout.json"
 RC=$?
+# Claude prints the conversation as plain text to stdout; the structured
+# JSON envelope is the trailing result line. Fall back to plain text.
+if [ "$RC" -eq 0 ] && head -1 "$RUN_DIR/stdout.json" 2>/dev/null | grep -qE '^\{.*"type":"result"'; then
+  cp "$RUN_DIR/stdout.json" "$RUN_DIR/stdout.txt"
+else
+  : > "$RUN_DIR/stdout.txt"
+fi
 set -e
 
 python3 - "$RUN_DIR" "$RC" <<'PY'
-import json, pathlib, sys, datetime
+import json, pathlib, sys, datetime, re
 run_dir, rc = sys.argv[1], int(sys.argv[2])
 p = pathlib.Path(run_dir) / "run.json"
 d = json.loads(p.read_text())
+stdout_json = pathlib.Path(run_dir) / "stdout.json"
+cost_usd = None
+usage = None
+try:
+    envelope = json.loads(stdout_json.read_text())
+    if isinstance(envelope, dict) and envelope.get("type") == "result":
+        cost_usd = envelope.get("total_cost_usd")
+        usage = envelope.get("usage")
+        model_usage = envelope.get("modelUsage") or {}
+        if cost_usd is None and model_usage:
+            cost_usd = sum(
+                v.get("costUSD", 0)
+                for v in model_usage.values()
+                if isinstance(v, dict)
+            )
+except Exception:
+    pass
 d.update({
     "exit_code": rc,
     "finished_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     "stdout_bytes": (pathlib.Path(run_dir) / "stdout.txt").stat().st_size,
-    "stderr_bytes": (pathlib.Path(run_dir) / "stderr.txt").stat().st_size,
+    "stderr_bytes": 0,
+    "cost_usd": cost_usd,
+    "usage": usage,
 })
 p.write_text(json.dumps(d, indent=2))
-print(json.dumps({"run_id": d["run_id"], "exit_code": rc, "workspace": d["workspace"]}))
+print(json.dumps({
+    "run_id": d["run_id"],
+    "exit_code": rc,
+    "cost_usd": cost_usd,
+    "tokens_in": (usage or {}).get("input_tokens"),
+    "tokens_out": (usage or {}).get("output_tokens"),
+}))
 PY
 exit "$RC"
