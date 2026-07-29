@@ -1212,7 +1212,7 @@
       const narrativeBlock = narrative.headline
         ? `<div class="panel"><div class="panel-heading"><h3>Narrative review</h3><span class="hint">delegated sub-agent · confidence ${escapeHtml(text(narrative.confidence, 'unknown'))}</span></div><div class="panel-body prose"><p><strong>${escapeHtml(text(narrative.headline))}</strong></p>${arr(narrative.what_happened).length ? `<h4>What happened</h4><ul>${arr(narrative.what_happened).map((b) => `<li>${escapeHtml(String(b))}</li>`).join('')}</ul>` : ''}${arr(narrative.engineering_findings).length ? `<h4>Engineering findings</h4><ul>${arr(narrative.engineering_findings).map((b) => `<li>${escapeHtml(String(b))}</li>`).join('')}</ul>` : ''}${narrative.what_was_unusual ? `<h4>What was unusual</h4><p>${escapeHtml(String(narrative.what_was_unusual))}</p>` : ''}${arr(narrative.follow_up_for_next_run).length ? `<h4>Follow-up for next run</h4><ul>${arr(narrative.follow_up_for_next_run).map((b) => `<li>${escapeHtml(String(b))}</li>`).join('')}</ul>` : ''}</div></div>`
         : '';
-      return `<section>${header}<div class="panel"><div class="panel-heading"><h3>Summary verdict</h3></div><div class="panel-body prose"><p>${escapeHtml(verdict || 'no notable signals extracted from transcript')}</p></div></div>${issuesBlock}${actionsBlock}${observationsBlock}${narrativeBlock}</section>`;
+      return `<div class="run-summary">${header}<div class="panel"><div class="panel-heading"><h3>Summary verdict</h3></div><div class="panel-body prose"><p>${escapeHtml(verdict || 'no notable signals extracted from transcript')}</p></div></div>${issuesBlock}${actionsBlock}${observationsBlock}${narrativeBlock}</div>`;
     }
 
     function renderRunImages(run) {
