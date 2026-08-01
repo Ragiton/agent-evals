@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T22:14:25.074247Z",
+  "generated_at": "2026-08-01T22:16:41.975135Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -1818,5 +1818,92 @@
       }
     ]
   },
-  "plan_usage": null
+  "plan_usage": {
+    "schema_version": "1.0.0",
+    "updated_at": "2026-08-01T22:16:24.434374+00:00",
+    "dashboard_generated_at": "2026-08-01T22:16:24.425Z",
+    "dashboard_schema_version": 2,
+    "lanes": [
+      {
+        "id": "claude",
+        "displayName": "Claude (Anthropic)",
+        "status": "live",
+        "source": "Claude Code live authenticated CLI /usage",
+        "reason": null,
+        "available": true,
+        "usagePeriod": {
+          "type": "weekly",
+          "label": "Weekly",
+          "usedPercent": 4,
+          "remainingPercent": 96,
+          "resetAt": "2026-08-04T18:00:00.000Z"
+        },
+        "weekly": {
+          "usedPercent": 4,
+          "remainingPercent": 96,
+          "resetAt": "2026-08-04T18:00:00.000Z"
+        }
+      },
+      {
+        "id": "codex",
+        "displayName": "Codex (OpenAI)",
+        "status": "live",
+        "source": "Codex authenticated WHAM weekly rate-limit window",
+        "reason": null,
+        "available": true,
+        "usagePeriod": {
+          "type": "weekly",
+          "label": "Weekly",
+          "usedPercent": 0,
+          "remainingPercent": 100,
+          "resetAt": "2026-08-08T04:14:48.000Z"
+        },
+        "weekly": {
+          "usedPercent": 0,
+          "remainingPercent": 100,
+          "resetAt": "2026-08-08T04:14:48.000Z"
+        }
+      },
+      {
+        "id": "cursor",
+        "displayName": "Cursor",
+        "status": "live",
+        "source": "Cursor authenticated DashboardService current-period plan usage (undocumented internal API)",
+        "reason": null,
+        "available": true,
+        "usagePeriod": {
+          "type": "plan_cycle",
+          "label": "Plan cycle",
+          "usedPercent": 14,
+          "remainingPercent": 86,
+          "resetAt": "2026-08-12T17:39:15.000Z"
+        },
+        "weekly": null
+      },
+      {
+        "id": "minimax",
+        "displayName": "MiniMax Coding Plan",
+        "status": "live",
+        "source": "MiniMax authenticated Coding Plan remains weekly record",
+        "reason": null,
+        "available": true,
+        "usagePeriod": {
+          "type": "weekly",
+          "label": "Weekly",
+          "usedPercent": 26,
+          "remainingPercent": 74,
+          "resetAt": "2026-08-03T00:00:00.000Z"
+        },
+        "weekly": {
+          "usedPercent": 26,
+          "remainingPercent": 74,
+          "resetAt": "2026-08-03T00:00:00.000Z"
+        }
+      }
+    ],
+    "source": {
+      "dashboard_cli": "/home/ragiton/projects/usage-dashboard/usage-cli.js",
+      "dashboard_repo": "/home/ragiton/projects/usage-dashboard"
+    }
+  }
 }

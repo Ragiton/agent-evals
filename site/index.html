@@ -224,6 +224,27 @@
     .cost-bar { display: block; height: 100%; background: var(--teal-dim); border-radius: 3px; }
     .cost-value { flex: 0 0 80px; text-align: right; font-size: 12px; color: var(--muted); }
 
+    .plan-usage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .plan-lane { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+    .plan-lane-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+    .plan-lane-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .plan-lane-period { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+    .plan-lane-bar { height: 8px; background: var(--surface-3); border-radius: 4px; overflow: hidden; position: relative; }
+    .plan-lane-bar-fill { display: block; height: 100%; border-radius: 4px; transition: background .2s ease; }
+    .plan-lane-bar-fill.usage-green { background: var(--green); }
+    .plan-lane-bar-fill.usage-amber { background: var(--ochre); }
+    .plan-lane-bar-fill.usage-red { background: var(--rust); }
+    .plan-lane-bar-fill.usage-muted { background: var(--teal-dim); }
+    .plan-lane-stats { display: flex; align-items: baseline; justify-content: space-between; margin-top: 6px; }
+    .plan-lane-pct { font-size: 14px; color: var(--text); }
+    .plan-lane-pct.usage-green { color: var(--green); }
+    .plan-lane-pct.usage-amber { color: var(--ochre); }
+    .plan-lane-pct.usage-red { color: var(--rust); }
+    .plan-lane-reset { font-size: 10px; color: var(--faint); }
+    .plan-lane-reason { font-size: 11px; color: var(--faint); margin-top: 4px; }
+    .plan-usage-meta { font-size: 11px; color: var(--faint); margin-top: 10px; }
+    .plan-usage-empty { color: var(--faint); font-size: 12px; }
+
     .toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -893,7 +914,9 @@
       const evalById = new Map(evals.map((item) => [item.id, item]));
       return {
         meta: { generatedAt: raw.generated_at || raw.generatedAt || null, schemaVersion: text(raw.schema_version || raw.schemaVersion, 'unknown'), sourceUrl },
-        evals, runs, evalById
+        evals, runs, evalById,
+        matrix: raw.matrix || null,
+        plan_usage: raw.plan_usage || null
       };
     }
 

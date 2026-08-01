@@ -157,10 +157,18 @@ def cost_from_envelope(envelope: dict, pricing: dict | None = None) -> dict:
 
 
 def main() -> int:
-    if len(sys.argv) > 1 and sys.argv[1] != "-":
-        envelope = json.loads(pathlib.Path(sys.argv[1]).read_text())
+    args = sys.argv[1:]
+    model = None
+    if "--model" in args:
+        i = args.index("--model")
+        model = args[i + 1]
+        del args[i:i + 2]
+    if args and args[0] != "-":
+        envelope = json.loads(pathlib.Path(args[0]).read_text())
     else:
         envelope = json.loads(sys.stdin.read())
+    if model and not envelope.get("model"):
+        envelope = {**envelope, "model": model}
     out = cost_from_envelope(envelope)
     out["computed_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
     print(json.dumps(out, indent=2))

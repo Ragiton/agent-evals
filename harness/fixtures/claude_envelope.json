@@ -1,0 +1,29 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 42830,
+  "duration_api_ms": 41205,
+  "result": "Implementation complete.",
+  "session_id": "0a1b2c3d-4e5f-6789-0abc-def012345678",
+  "request_id": "req_realistic-2026-fixture",
+  "total_cost_usd": 0.1842,
+  "usage": {
+    "input_tokens": 1205,
+    "output_tokens": 2840,
+    "cache_creation_input_tokens": 28500,
+    "cache_read_input_tokens": 125000
+  },
+  "modelUsage": {
+    "claude-sonnet-4-6": {
+      "inputTokens": 1205,
+      "outputTokens": 2840,
+      "cacheCreationInputTokens": 28500,
+      "cacheReadInputTokens": 125000,
+      "webSearchRequests": 0,
+      "costUSD": 0.1842,
+      "contextWindow": 0,
+      "maxOutputTokens": 0
+    }
+  }
+}
