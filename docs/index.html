@@ -1022,15 +1022,41 @@
 
     function renderCostCard(data) {
       const costsWithValue = data.runs.filter((run) => Number.isFinite(run.costUsd));
-      if (!costsWithValue.length) return '';
+      const tokensWithValue = data.runs.filter((run) => {
+        const u = run.usage || {};
+        return Number.isFinite(u.input_tokens) || Number.isFinite(u.output_tokens);
+      });
+      // Render even with no cost captured — show a "not yet captured" state plus
+      // token capture if available. The site is more honest when the card is
+      // always visible, even if empty.
       const total = costsWithValue.reduce((sum, run) => sum + run.costUsd, 0);
       const byAgent = {};
       costsWithValue.forEach((run) => { byAgent[run.agent] = (byAgent[run.agent] || 0) + run.costUsd; });
       const byEval = {};
       costsWithValue.forEach((run) => { byEval[run.evalId] = (byEval[run.evalId] || 0) + run.costUsd; });
-      const agentRows = Object.entries(byAgent).sort((a, b) => b[1] - a[1]).map(([agent, cost]) => `<div class="cost-row"><span class="cost-label">${escapeHtml(agent)}</span><span class="cost-bar-wrap"><span class="cost-bar" style="width:${Math.round((cost/total)*100)}%"></span></span><span class="cost-value mono">$${cost.toFixed(4)}</span></div>`).join('');
-      const evalRows = Object.entries(byEval).sort((a, b) => b[1] - a[1]).map(([evalId, cost]) => `<div class="cost-row"><span class="cost-label">${escapeHtml(evalId)}</span><span class="cost-bar-wrap"><span class="cost-bar" style="width:${Math.round((cost/total)*100)}%"></span></span><span class="cost-value mono">$${cost.toFixed(4)}</span></div>`).join('');
-      return `<div class="panel cost-card"><div class="panel-heading"><h2>Spend summary</h2><span class="hint">from runs with captured per-call cost · ${costsWithValue.length} of ${data.runs.length} runs</span></div><div class="panel-body"><div class="cost-total">Total: <strong class="mono">$${total.toFixed(4)}</strong></div><div class="cost-split"><div><h4 class="cost-section-title">By agent</h4>${agentRows}</div><div><h4 class="cost-section-title">By eval</h4>${evalRows}</div></div></div></div>`;
+      const tokenTotal = tokensWithValue.reduce((acc, run) => {
+        const u = run.usage || {};
+        return {
+          in: acc.in + (u.input_tokens || 0),
+          out: acc.out + (u.output_tokens || 0)
+        };
+      }, { in: 0, out: 0 });
+      const agentRows = costsWithValue.length
+        ? Object.entries(byAgent).sort((a, b) => b[1] - a[1]).map(([agent, cost]) => `<div class="cost-row"><span class="cost-label">${escapeHtml(agent)}</span><span class="cost-bar-wrap"><span class="cost-bar" style="width:${Math.round((cost/total)*100)}%"></span></span><span class="cost-value mono">$${cost.toFixed(4)}</span></div>`).join('')
+        : '<div class="cost-row muted-cell">no USD captured — run via the CLI launcher with --output-format json</div>';
+      const evalRows = costsWithValue.length
+        ? Object.entries(byEval).sort((a, b) => b[1] - a[1]).map(([evalId, cost]) => `<div class="cost-row"><span class="cost-label">${escapeHtml(evalId)}</span><span class="cost-bar-wrap"><span class="cost-bar" style="width:${Math.round((cost/total)*100)}%"></span></span><span class="cost-value mono">$${cost.toFixed(4)}</span></div>`).join('')
+        : '';
+      const totalMarkup = costsWithValue.length
+        ? `<div class="cost-total">Total: <strong class="mono">$${total.toFixed(4)}</strong><span class="cost-note">${costsWithValue.length} of ${data.runs.length} runs have USD captured</span></div>`
+        : `<div class="cost-total">Total: <strong class="mono">—</strong><span class="cost-note">no per-call USD captured yet (${data.runs.length} runs)</span></div>`;
+      const tokenMarkup = tokensWithValue.length
+        ? `<div class="cost-tokens">Tokens captured: <span class="mono">${tokenTotal.in.toLocaleString()}</span> in · <span class="mono">${tokenTotal.out.toLocaleString()}</span> out across ${tokensWithValue.length} runs</div>`
+        : '';
+      const evalBlock = costsWithValue.length
+        ? `<div><h4 class="cost-section-title">By eval</h4>${evalRows}</div>`
+        : '';
+      return `<div class="panel cost-card"><div class="panel-heading"><h2>Spend summary</h2><span class="hint">${costsWithValue.length} of ${data.runs.length} runs captured per-call cost</span></div><div class="panel-body">${totalMarkup}${tokenMarkup}<div class="cost-split"><div><h4 class="cost-section-title">By agent</h4>${agentRows}</div>${evalBlock}</div></div></div>`;
     }
 
     function renderStats(data) {
