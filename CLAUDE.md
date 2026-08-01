@@ -36,3 +36,33 @@ Personal eval harness for engineering AI agents. **Specification is the contract
 2. `python harness/grader.py --run results/<run-id>/`
 3. `python harness/cross_grade.py --run results/<run-id>/ --agent codex --model gpt-5.6-luna`
 4. Append to results.json (site re-reads on reload)
+
+## Harness upgrades (fea/smevals-upgrades-cost)
+
+Four changes shipped together:
+
+1. **Resumable `--count N` runner**: `runner.py` accepts `--count N`, `--max-turns`, `--condition`. Loops over slots `<spec-id>-<agent>-NN`; archives failed slots; calls grader after each; stops when one passes. Re-entrant: skips slots that already passed.
+2. **Grader YAML snapshotting**: `grader.py` embeds `spec_snapshot` into every `results.json` / `grade.json`, capturing the deterministic checks list, llm_judge config, run manifest fields (agent, model, budget, turns, condition), spec version, and a timestamp. Enables audit without the original YAML.
+3. **Co-located `grades/` layout**: `grader.py` writes the full grade result to `<run-dir>/grades/deterministic/grade.json`. The run-root `grade.json` becomes an **index manifest** (`schema_version`, `graders`, `paths`, `passed`, scores, `spec_snapshot`). `results.json` at the run root remains the legacy alias (full result). `aggregate.py` reads the manifest and follows the path pointer.
+4. **`harness_error` status**: `aggregate.py` sets `status: "harness_error"` when exit_code != 0 or grade is missing. Site renders this as a distinct amber badge, tracked separately from `incomplete`.
+
+### File layout after grading
+```
+results/<run-id>/
+  run.json                          ← runner manifest
+  grade.json                        ← index manifest (NEW)
+  results.json                      ← legacy full result (backward compat)
+  grades/
+    deterministic/
+      grade.json                    ← full grader output (NEW)
+```
+
+### Backward compatibility
+- Existing runs without `grades/` still aggregate: `aggregate.py` falls back to the legacy full-result `grade.json`.
+- `results.json` at the run root is always written (identical to `grades/deterministic/grade.json`).
+
+## Cost discipline
+- **Per-call cost** is captured from the CLI JSON envelope into `run.json` → `cost_usd` and `usage`. The site shows it per-run and in a top-of-page spend summary card.
+- **Weekly budget cap**: never exceed 50% of any CLI subscription's remaining weekly quota (or Cursor's weekly-equivalent of monthly quota). Stop when the budget is hit.
+- **Cost cap flag**: `--max-budget-usd N` passed to runner limits the per-run hard cap; `--max-turns N` limits turns. These are hints to the CLI, not guarantees.
+- **Aggregator**: `python harness/aggregate.py` rebuilds `results/results.json` from all run dirs. Run after grading to refresh the site.

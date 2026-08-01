@@ -55,12 +55,46 @@ def find_specs(evals_dir: pathlib.Path) -> list[dict]:
     return out
 
 
+def _read_grade_data(run_dir: pathlib.Path) -> dict | None:
+    """Read grade data, handling both legacy (full result) and new (manifest) grade.json formats."""
+    grade_json = run_dir / "grade.json"
+    grades_det = run_dir / "grades" / "deterministic" / "grade.json"
+    if grade_json.exists():
+        try:
+            g = json.loads(grade_json.read_text())
+            if "graders" in g and "paths" in g:
+                # Upgrade 3: new manifest layout — read actual grade from co-located file
+                det_path = run_dir / g["paths"].get("deterministic", "grades/deterministic/grade.json")
+                if det_path.exists():
+                    return json.loads(det_path.read_text())
+                return None
+            # Legacy full-grade layout
+            return g
+        except Exception:
+            return None
+    if grades_det.exists():
+        try:
+            return json.loads(grades_det.read_text())
+        except Exception:
+            return None
+    return None
+
+
 def aggregate_run(run_dir: pathlib.Path) -> dict | None:
     run_json = run_dir / "run.json"
-    grade_json = run_dir / "grade.json"
     if not run_json.exists():
         return None
     run = json.loads(run_json.read_text())
+    exit_code = run.get("exit_code")
+    grade_data = _read_grade_data(run_dir)
+
+    # Upgrade 4: classify runs as completed or harness_error
+    has_grade = grade_data is not None
+    if not has_grade or (exit_code is not None and exit_code != 0):
+        run_status = "harness_error"
+    else:
+        run_status = None  # site derives pass/fail from passed field
+
     out = {
         "run_id": run["run_id"],
         "spec_id": run["spec_id"],
@@ -69,7 +103,8 @@ def aggregate_run(run_dir: pathlib.Path) -> dict | None:
         "started_at": run.get("started_at"),
         "finished_at": run.get("finished_at"),
         "graded_at": None,
-        "exit_code": run.get("exit_code"),
+        "exit_code": exit_code,
+        "status": run_status,
         "deterministic": [],
         "deterministic_score": None,
         "final_score": None,
@@ -88,20 +123,18 @@ def aggregate_run(run_dir: pathlib.Path) -> dict | None:
             out["summary"] = json.loads(summary_path.read_text())
         except Exception:
             out["summary"] = None
-    if grade_json.exists():
-        g = json.loads(grade_json.read_text())
-        out["deterministic"] = g.get("deterministic", [])
-        out["deterministic_score"] = g.get("deterministic_score")
-        out["final_score"] = g.get("final_score")
-        out["passed"] = g.get("passed")
-        out["graded_at"] = g.get("graded_at")
-        out["llm_judge"] = g.get("llm_judge")
-        # The grader may also have computed a cost from the envelope; prefer
-        # the run manifest's value (it's set by the launcher).
+    if grade_data:
+        out["deterministic"] = grade_data.get("deterministic", [])
+        out["deterministic_score"] = grade_data.get("deterministic_score")
+        out["final_score"] = grade_data.get("final_score")
+        out["passed"] = grade_data.get("passed")
+        out["graded_at"] = grade_data.get("graded_at")
+        out["llm_judge"] = grade_data.get("llm_judge")
+        # Prefer the run manifest's cost value (set by the launcher).
         if out["cost_usd"] is None:
-            out["cost_usd"] = g.get("cost_usd")
+            out["cost_usd"] = grade_data.get("cost_usd")
         if out["usage"] is None:
-            out["usage"] = g.get("usage")
+            out["usage"] = grade_data.get("usage")
     for cross_file in sorted(run_dir.glob("cross_grade_*.json")):
         c = json.loads(cross_file.read_text())
         out["cross_grades"].append({

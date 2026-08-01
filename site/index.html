@@ -30,6 +30,8 @@
       --blue: #83abd6;
       --blue-bg: #192535;
       --purple: #b5a1d8;
+      --amber: #e09a4d;
+      --amber-bg: #2d1f0e;
       --radius: 3px;
       --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
@@ -209,7 +211,18 @@
     .stat-value.pass { color: var(--green); }
     .stat-value.fail { color: var(--rust); }
     .stat-value.incomplete { color: var(--ochre); }
+    .stat-value.harness_error { color: var(--amber); }
     .stat-note { margin-top: 4px; color: var(--faint); font-size: 11px; }
+
+    .cost-card { margin-bottom: 24px; }
+    .cost-total { margin-bottom: 12px; font-size: 15px; color: var(--muted); }
+    .cost-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .cost-section-title { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); font-weight: 600; }
+    .cost-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .cost-label { flex: 0 0 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--text); }
+    .cost-bar-wrap { flex: 1; height: 6px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
+    .cost-bar { display: block; height: 100%; background: var(--teal-dim); border-radius: 3px; }
+    .cost-value { flex: 0 0 80px; text-align: right; font-size: 12px; color: var(--muted); }
 
     .toolbar {
       display: flex;
@@ -280,6 +293,7 @@
     .status.fail { color: var(--rust); background: var(--rust-bg); }
     .status.incomplete { color: var(--ochre); background: var(--ochre-bg); }
     .status.running { color: var(--blue); background: var(--blue-bg); }
+    .status.harness_error { color: var(--amber); background: var(--amber-bg); }
     .status.unknown { color: var(--muted); background: var(--surface-2); }
     .missing { color: var(--faint); }
     .missing::after { content: " · unavailable"; font-size: 10px; }
@@ -577,6 +591,7 @@
       if (['fail', 'failed', 'failure', 'red'].includes(candidate)) return 'fail';
       if (['running', 'active', 'in_progress'].includes(candidate)) return 'running';
       if (['incomplete', 'ungraded', 'pending', 'timeout', 'timed_out', 'cancelled', 'canceled'].includes(candidate)) return 'incomplete';
+      if (['harness_error', 'harness-error', 'setup_error', 'setup-error'].includes(candidate)) return 'harness_error';
       return null;
     }
 
@@ -896,7 +911,7 @@
       throw new Error(`Could not load results.json. ${errors.join(' · ')}`);
     }
 
-    function statusLabel(status) { return ({ pass: 'pass', fail: 'fail', incomplete: 'incomplete', running: 'running', unknown: 'unknown' })[status] || 'unknown'; }
+    function statusLabel(status) { return ({ pass: 'pass', fail: 'fail', incomplete: 'incomplete', running: 'running', harness_error: 'harness error', unknown: 'unknown' })[status] || 'unknown'; }
     function statusMarkup(status, label = statusLabel(status)) { return `<span class="status ${escapeAttr(status || 'unknown')}">${escapeHtml(label)}</span>`; }
     function chipMarkup(label, tone = '') { return `<span class="chip ${tone}">${escapeHtml(label)}</span>`; }
     function missingMarkup(label = '—') { return `<span class="missing" title="This field was not captured">${escapeHtml(label)}</span>`; }
@@ -913,7 +928,7 @@
     }
     function labelSkill(skill) { return has(skill) ? skill : 'unattributed'; }
     function statusCounts(runs) {
-      return runs.reduce((counts, run) => { counts[run.status] = (counts[run.status] || 0) + 1; return counts; }, { pass: 0, fail: 0, incomplete: 0, running: 0 });
+      return runs.reduce((counts, run) => { counts[run.status] = (counts[run.status] || 0) + 1; return counts; }, { pass: 0, fail: 0, incomplete: 0, running: 0, harness_error: 0 });
     }
 
     function bestCompleted(runs) {
@@ -1005,6 +1020,19 @@
       return runTimestamp(b.latest) - runTimestamp(a.latest) || a.key.localeCompare(b.key);
     }
 
+    function renderCostCard(data) {
+      const costsWithValue = data.runs.filter((run) => Number.isFinite(run.costUsd));
+      if (!costsWithValue.length) return '';
+      const total = costsWithValue.reduce((sum, run) => sum + run.costUsd, 0);
+      const byAgent = {};
+      costsWithValue.forEach((run) => { byAgent[run.agent] = (byAgent[run.agent] || 0) + run.costUsd; });
+      const byEval = {};
+      costsWithValue.forEach((run) => { byEval[run.evalId] = (byEval[run.evalId] || 0) + run.costUsd; });
+      const agentRows = Object.entries(byAgent).sort((a, b) => b[1] - a[1]).map(([agent, cost]) => `<div class="cost-row"><span class="cost-label">${escapeHtml(agent)}</span><span class="cost-bar-wrap"><span class="cost-bar" style="width:${Math.round((cost/total)*100)}%"></span></span><span class="cost-value mono">$${cost.toFixed(4)}</span></div>`).join('');
+      const evalRows = Object.entries(byEval).sort((a, b) => b[1] - a[1]).map(([evalId, cost]) => `<div class="cost-row"><span class="cost-label">${escapeHtml(evalId)}</span><span class="cost-bar-wrap"><span class="cost-bar" style="width:${Math.round((cost/total)*100)}%"></span></span><span class="cost-value mono">$${cost.toFixed(4)}</span></div>`).join('');
+      return `<div class="panel cost-card"><div class="panel-heading"><h2>Spend summary</h2><span class="hint">from runs with captured per-call cost · ${costsWithValue.length} of ${data.runs.length} runs</span></div><div class="panel-body"><div class="cost-total">Total: <strong class="mono">$${total.toFixed(4)}</strong></div><div class="cost-split"><div><h4 class="cost-section-title">By agent</h4>${agentRows}</div><div><h4 class="cost-section-title">By eval</h4>${evalRows}</div></div></div></div>`;
+    }
+
     function renderStats(data) {
       const counts = statusCounts(data.runs);
       const agents = new Set(data.runs.map((run) => run.agent));
@@ -1015,8 +1043,11 @@
         <div class="stat"><div class="stat-label">Runs captured</div><div class="stat-value">${data.runs.length}</div><div class="stat-note">${agents.size} agent${agents.size === 1 ? '' : 's'} represented</div></div>
         <div class="stat"><div class="stat-label">Pass</div><div class="stat-value pass">${counts.pass}</div><div class="stat-note">explicitly evaluated pass</div></div>
         <div class="stat"><div class="stat-label">Fail</div><div class="stat-value fail">${counts.fail}</div><div class="stat-note">explicitly evaluated fail</div></div>
-        <div class="stat"><div class="stat-label">Incomplete / running</div><div class="stat-value incomplete">${counts.incomplete + counts.running}</div><div class="stat-note">actual spend: ${totalCost === null ? 'not captured' : '$' + totalCost.toFixed(2)}</div></div>
-      </div>`;
+        <div class="stat"><div class="stat-label">Incomplete / running</div><div class="stat-value incomplete">${counts.incomplete + counts.running}</div><div class="stat-note">not yet graded</div></div>
+        ${counts.harness_error ? `<div class="stat"><div class="stat-label">Harness error</div><div class="stat-value harness_error">${counts.harness_error}</div><div class="stat-note">runner or grader failed; see exit code</div></div>` : ''}
+        <div class="stat"><div class="stat-label">Actual spend</div><div class="stat-value">${totalCost === null ? '—' : '$' + totalCost.toFixed(2)}</div><div class="stat-note">${actualCosts.length} run${actualCosts.length === 1 ? '' : 's'} with cost captured</div></div>
+      </div>
+      ${renderCostCard(data)}`;
     }
 
     function renderFilterOptions(data, field, selected) {
@@ -1230,15 +1261,16 @@
       const usage = obj(run.usage);
       const inTokens = toFiniteNumber(usage.input_tokens);
       const outTokens = toFiniteNumber(usage.output_tokens);
+      const cacheCreate = toFiniteNumber(usage.cache_creation_input_tokens);
+      const cacheRead = toFiniteNumber(usage.cache_read_input_tokens);
       const cap = toFiniteNumber(run.costCap);
-      if (cost === null && inTokens === null && outTokens === null) return '';
-      const tokensLine = (inTokens !== null || outTokens !== null)
-        ? `<div class="meta-item"><dt>tokens</dt><dd class="mono">in ${inTokens === null ? '—' : inTokens.toLocaleString()} · out ${outTokens === null ? '—' : outTokens.toLocaleString()}</dd></div>`
-        : '';
+      if (cost === null && inTokens === null && outTokens === null && cacheCreate === null && cacheRead === null) return '';
       const capLine = cap !== null ? `<div class="row-subtitle">budget cap $${cap.toFixed(2)} is not spend</div>` : '';
       const value = cost !== null ? `$${cost.toFixed(4)}` : 'tokens only';
       const note = cost !== null ? 'captured from CLI JSON envelope' : 'no per-call USD exposed by this CLI';
-      return `<div class="panel"><div class="panel-heading"><h2>Cost &amp; token capture</h2><span class="hint">per-invocation spend where the CLI emits it</span></div><div class="panel-body"><div class="score-rail"><div class="score-box"><div class="label">actual cost</div><div class="value">${escapeHtml(value)}</div><div class="sub">${escapeHtml(note)}</div></div><div class="score-box"><div class="label">input tokens</div><div class="value">${inTokens === null ? '—' : inTokens.toLocaleString()}</div><div class="sub">${capLine}</div></div><div class="score-box"><div class="label">output tokens</div><div class="value">${outTokens === null ? '—' : outTokens.toLocaleString()}</div><div class="sub">from CLI JSON envelope</div></div></div></div></div>`;
+      const cacheCreateBox = cacheCreate !== null ? `<div class="score-box"><div class="label">cache write tokens</div><div class="value">${cacheCreate.toLocaleString()}</div><div class="sub">cache_creation_input_tokens</div></div>` : '';
+      const cacheReadBox = cacheRead !== null ? `<div class="score-box"><div class="label">cache read tokens</div><div class="value">${cacheRead.toLocaleString()}</div><div class="sub">cache_read_input_tokens</div></div>` : '';
+      return `<div class="panel"><div class="panel-heading"><h2>Cost &amp; token capture</h2><span class="hint">per-invocation spend where the CLI emits it</span></div><div class="panel-body"><div class="score-rail"><div class="score-box"><div class="label">actual cost</div><div class="value">${escapeHtml(value)}</div><div class="sub">${escapeHtml(note)}</div></div><div class="score-box"><div class="label">input tokens</div><div class="value">${inTokens === null ? '—' : inTokens.toLocaleString()}</div><div class="sub">${capLine}</div></div><div class="score-box"><div class="label">output tokens</div><div class="value">${outTokens === null ? '—' : outTokens.toLocaleString()}</div><div class="sub">from CLI JSON envelope</div></div>${cacheCreateBox}${cacheReadBox}</div></div></div>`;
     }
 
     function renderTranscript(run) {

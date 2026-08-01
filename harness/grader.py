@@ -23,6 +23,7 @@ the grader usable with standalone fixtures and tests.
 from __future__ import annotations
 
 import argparse
+import datetime
 import glob as _glob
 import json
 import os
@@ -969,6 +970,23 @@ def main(argv: list[str] | None = None) -> int:
             "model": run.get("model") if run else None,
             "output_path": str(output),
         })
+        grading_cfg = spec.get("grading", {}) if isinstance(spec, dict) else {}
+        spec_id_val = (run.get("spec_id") if run else None) or (spec.get("id") if isinstance(spec, dict) else None) or spec_path.stem
+        result["spec_snapshot"] = {
+            "spec_id": str(spec_id_val),
+            "spec_version": spec.get("version") if isinstance(spec, dict) else None,
+            "deterministic_checks": grading_cfg.get("deterministic", []),
+            "llm_judge": grading_cfg.get("llm_judge") or None,
+            "run_manifest": {
+                "agent": run.get("agent") if run else None,
+                "model": run.get("model") if run else None,
+                "max_budget_usd": run.get("max_budget_usd") if run else None,
+                "max_turns": run.get("max_turns") if run else None,
+                "started_at": run.get("started_at") if run else None,
+                "condition": run.get("condition") if run else None,
+            },
+            "snapshot_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
     except Exception as exc:
         # Setup/spec errors are represented in the same schema when an output
         # path is available.  This keeps automation consumable even when a
@@ -1007,10 +1025,25 @@ def main(argv: list[str] | None = None) -> int:
         }
 
     _write_json(output, result)
-    # Existing repository tooling historically consumed grade.json.  Keep an
-    # alias only for the default run-dir output; results.json remains canonical.
-    if run_dir and output == run_dir / "results.json":
-        _write_json(run_dir / "grade.json", result)
+    if run_dir:
+        # Upgrade 3: co-located grader result under grades/deterministic/
+        _write_json(run_dir / "grades" / "deterministic" / "grade.json", result)
+        # Index manifest at run root (grade.json); results.json remains the legacy alias.
+        _meta = result.get("metadata", {})
+        _snap = result.get("spec_snapshot") or {}
+        _manifest = {
+            "schema_version": "1.0.0",
+            "run_id": _meta.get("run_id") or run_dir.name,
+            "spec_id": _snap.get("spec_id") or _meta.get("run_id") or run_dir.name,
+            "graded_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "graders": ["deterministic"],
+            "paths": {"deterministic": "grades/deterministic/grade.json"},
+            "passed": result.get("passed", False),
+            "final_score": result.get("final_score", 0.0),
+            "deterministic_score": result.get("deterministic_score", 0.0),
+            "spec_snapshot": _snap or None,
+        }
+        _write_json(run_dir / "grade.json", _manifest)
     failed = result["overall"]["failed_checks"] if "overall" in result else 1
     print(f"[grader] wrote {output}")
     print(f"[grader] status={result.get('status', 'failed')} failed_checks={failed}")
