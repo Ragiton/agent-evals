@@ -1072,6 +1072,26 @@
       </section>`;
     }
 
+    function renderPlanUsage(data) {
+      const plan = obj(data.plan_usage);
+      const lanes = arr(plan.lanes);
+      if (!lanes.length) {
+        return `<div class="panel"><div class="panel-heading"><h2>Plan usage</h2><span class="hint">no plan-usage snapshot present</span></div><div class="panel-body"><div class="plan-usage-empty">run <code>python harness/usage_snapshot.py</code> to populate</div></div></div>`;
+      }
+      const updated = text(plan.updated_at) || text(plan.dashboard_generated_at);
+      const laneCards = lanes.map((lane) => {
+        const up = obj(lane.usagePeriod);
+        const used = toFiniteNumber(up.usedPercent);
+        const remaining = toFiniteNumber(up.remainingPercent);
+        const resetAt = text(up.resetAt);
+        const resetHuman = resetAt ? new Date(resetAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+        const tone = !lane.available || remaining === null ? 'muted' : (remaining >= 50 ? 'usage-green' : remaining >= 25 ? 'usage-amber' : 'usage-red');
+        const barWidth = remaining !== null ? Math.max(0, Math.min(100, remaining)) : 0;
+        return `<div class="plan-lane"><div class="plan-lane-head"><span class="plan-lane-name">${escapeHtml(text(lane.displayName || lane.id))}</span><span class="plan-lane-status ${tone}">${lane.available ? (remaining !== null ? remaining + '% left' : '—') : 'unavailable'}</span></div><div class="plan-lane-bar"><div class="plan-lane-bar-fill ${tone}" style="width:${barWidth}%"></div></div><div class="plan-lane-meta">${used !== null ? `used ${used}%` : '—'}${resetAt ? ` · resets ${escapeHtml(resetHuman)}` : ''}</div></div>`;
+      }).join('');
+      return `<div class="panel"><div class="panel-heading"><h2>Plan usage</h2><span class="hint">${lanes.filter((l) => l.available).length}/${lanes.length} lanes live${updated ? ` · updated ${escapeHtml(new Date(updated).toLocaleString())}` : ''}</span></div><div class="panel-body"><div class="plan-usage-grid">${laneCards}</div></div></div>`;
+    }
+
     function renderCostCard(data) {
       const costsWithValue = data.runs.filter((run) => Number.isFinite(run.costUsd));
       const tokensWithValue = data.runs.filter((run) => {
@@ -1125,7 +1145,7 @@
         ${counts.harness_error ? `<div class="stat"><div class="stat-label">Harness error</div><div class="stat-value harness_error">${counts.harness_error}</div><div class="stat-note">runner or grader failed; see exit code</div></div>` : ''}
         <div class="stat"><div class="stat-label">Actual spend</div><div class="stat-value">${totalCost === null ? '—' : '$' + totalCost.toFixed(2)}</div><div class="stat-note">${actualCosts.length} run${actualCosts.length === 1 ? '' : 's'} with cost captured</div></div>
       </div>
-      ${renderCostCard(data)}`;
+      ${renderCostCard(data)}${renderPlanUsage(data)}`;
     }
 
     function renderFilterOptions(data, field, selected) {

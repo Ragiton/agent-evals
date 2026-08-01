@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T22:16:41.975135Z",
+  "generated_at": "2026-08-01T22:24:15.415016Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -1820,8 +1820,8 @@
   },
   "plan_usage": {
     "schema_version": "1.0.0",
-    "updated_at": "2026-08-01T22:16:24.434374+00:00",
-    "dashboard_generated_at": "2026-08-01T22:16:24.425Z",
+    "updated_at": "2026-08-01T22:24:15.278318+00:00",
+    "dashboard_generated_at": "2026-08-01T22:24:15.269Z",
     "dashboard_schema_version": 2,
     "lanes": [
       {
@@ -1836,12 +1836,12 @@
           "label": "Weekly",
           "usedPercent": 4,
           "remainingPercent": 96,
-          "resetAt": "2026-08-04T18:00:00.000Z"
+          "resetAt": "2026-08-04T17:59:00.000Z"
         },
         "weekly": {
           "usedPercent": 4,
           "remainingPercent": 96,
-          "resetAt": "2026-08-04T18:00:00.000Z"
+          "resetAt": "2026-08-04T17:59:00.000Z"
         }
       },
       {
@@ -1890,13 +1890,13 @@
         "usagePeriod": {
           "type": "weekly",
           "label": "Weekly",
-          "usedPercent": 26,
-          "remainingPercent": 74,
+          "usedPercent": 27,
+          "remainingPercent": 73,
           "resetAt": "2026-08-03T00:00:00.000Z"
         },
         "weekly": {
-          "usedPercent": 26,
-          "remainingPercent": 74,
+          "usedPercent": 27,
+          "remainingPercent": 73,
           "resetAt": "2026-08-03T00:00:00.000Z"
         }
       }
