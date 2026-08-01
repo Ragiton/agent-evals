@@ -491,6 +491,7 @@
       <nav class="main-nav" aria-label="Primary navigation">
         <a class="nav-link" href="#/overview" data-nav="overview">Monitor</a>
         <a class="nav-link" href="#/overview?mode=compare" data-nav="compare">Compare</a>
+        <a class="nav-link" href="#/matrix" data-nav="matrix">Matrix</a>
       </nav>
     </div>
   </header>
@@ -1020,6 +1021,34 @@
       return runTimestamp(b.latest) - runTimestamp(a.latest) || a.key.localeCompare(b.key);
     }
 
+    function renderMatrix(data) {
+      const matrix = obj(data.matrix);
+      if (!matrix.cells || !matrix.cells.length) {
+        return `<section><div class="view-header"><div><p class="eyebrow">Eval matrix</p><h1>Evaluation plan</h1></div></div><div class="empty-state"><strong>No matrix cells defined.</strong><p>Create <code>results/eval_matrix.json</code> to plan upcoming evals.</p></div></section>`;
+      }
+      const rows = matrix.cells.map((cell) => {
+        const status = cell.latest_run_status;
+        const passed = cell.latest_run_passed;
+        const statusText = passed === true ? 'pass' : passed === false ? 'fail' : (status === 'harness_error' ? 'harness error' : (status || 'never run'));
+        const statusClass = passed === true ? 'pass' : passed === false ? 'fail' : (status === 'harness_error' ? 'harness_error' : 'incomplete');
+        const approvedBadge = cell.approved ? `<span class="chip teal">approved</span>` : `<span class="chip">pending approval</span>`;
+        const note = text(cell.notes);
+        const latestRun = cell.latest_run_id ? `<a class="run-link" href="#/run/${encodeURIComponent(cell.latest_run_id)}">${escapeHtml(cell.latest_run_id)}</a>` : '<span class="muted-cell">—</span>';
+        return `<tr><td><div class="matrix-cell-id mono">${escapeHtml(cell.id)}</div><div class="row-subtitle">${escapeHtml(cell.spec_id)} · ${escapeHtml(cell.agent)} · ${escapeHtml(cell.model)} · ${escapeHtml(cell.condition || 'baseline')}</div>${note ? `<div class="row-subtitle">${escapeHtml(note)}</div>` : ''}</td><td>${approvedBadge}</td><td><span class="status ${statusClass}">${escapeHtml(statusText)}</span></td><td>${latestRun}</td></tr>`;
+      }).join('');
+      const approvedCount = matrix.cells.filter((c) => c.approved).length;
+      const passedCount = matrix.cells.filter((c) => c.latest_run_passed === true).length;
+      return `<section aria-labelledby="matrix-title">
+        <div class="view-header"><div><p class="eyebrow">Eval matrix</p><h1 id="matrix-title">Evaluation plan</h1><p class="lede">Each row is one (spec × agent × model × condition) cell. Approved cells are dispatched by the nightly cron. Cells with a passing run are not re-run.</p></div></div>
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-label">Cells</div><div class="stat-value">${matrix.cells.length}</div><div class="stat-note">spec × agent × model combinations</div></div>
+          <div class="stat"><div class="stat-label">Approved</div><div class="stat-value">${approvedCount}</div><div class="stat-note">will run when quota allows</div></div>
+          <div class="stat"><div class="stat-label">Passing</div><div class="stat-value pass">${passedCount}</div><div class="stat-note">already complete; not re-run</div></div>
+        </div>
+        <div class="panel"><div class="panel-heading"><h2>Cells</h2><span class="hint">approve / reject via <code>python harness/update_matrix.py {approve|reject} &lt;cell_id&gt;</code></span></div><div class="panel-body"><div class="table-wrap"><table><thead><tr><th scope="col">Cell</th><th scope="col">Approved</th><th scope="col">Latest status</th><th scope="col">Latest run</th></tr></thead><tbody>${rows}</tbody></table></div></div></div>
+      </section>`;
+    }
+
     function renderCostCard(data) {
       const costsWithValue = data.runs.filter((run) => Number.isFinite(run.costUsd));
       const tokensWithValue = data.runs.filter((run) => {
@@ -1350,13 +1379,17 @@
       const query = new URLSearchParams(queryString);
       if (pieces[0] === 'eval' && pieces[1]) return { view: 'eval', id: pieces.slice(1).join('/') };
       if (pieces[0] === 'run' && pieces[1]) return { view: 'run', id: pieces.slice(1).join('/') };
+      if (pieces[0] === 'matrix') return { view: 'matrix' };
       return { view: 'overview', mode: query.get('mode') || 'monitor' };
     }
 
     function updateNav(route) {
       $$('[data-nav]').forEach((link) => {
         const nav = link.dataset.nav;
-        link.setAttribute('aria-current', (route.view === 'overview' && ((nav === 'compare' && route.mode === 'compare') || (nav === 'overview' && route.mode !== 'compare'))) ? 'page' : 'false');
+        const isCurrent =
+          (route.view === 'overview' && ((nav === 'compare' && route.mode === 'compare') || (nav === 'overview' && route.mode !== 'compare')))
+          || (route.view === 'matrix' && nav === 'matrix');
+        link.setAttribute('aria-current', isCurrent ? 'page' : 'false');
       });
     }
 
@@ -1387,6 +1420,8 @@
         const run = runtime.data.runs.find((item) => item.runId === route.id);
         app.innerHTML = run ? renderRunDetail(run) : renderNotFound('Run', route.id);
         bindRunControls();
+      } else if (route.view === 'matrix') {
+        app.innerHTML = renderMatrix(runtime.data);
       } else {
         app.innerHTML = route.mode === 'compare' ? renderCompare(runtime.data) : renderOverview(runtime.data);
         if (route.mode !== 'compare') bindOverviewControls();

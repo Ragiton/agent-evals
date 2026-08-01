@@ -1,0 +1,112 @@
+{
+  "_source": {
+    "url": "https://platform.openai.com/docs/pricing (also https://openai.com/api/pricing/)",
+    "retrieved_at": "2026-08-01",
+    "notes": "Prices are per 1M tokens. 'short_context' rates shown; long_context rates (over the model's threshold) are higher and not modeled. Cached input is discounted (often 10x) relative to fresh input. Regional processing endpoints carry a 10% uplift (not modeled). The 'codex_pricing_estimate' cost source is an estimate derived from the published rates; the Codex CLI's --json stream does not return per-call USD, so we apply these rates to the token counts in turn.completed.usage events."
+  },
+  "_units": "USD per 1,000,000 tokens",
+  "_format": "input_usd, cached_input_usd, cache_write_usd, output_usd — 'null' means the model has no published rate for that token class and is treated as 0 cost",
+  "models": {
+    "gpt-5.6-luna": {
+      "display_name": "GPT-5.6 Luna",
+      "input_usd": 0.2,
+      "cached_input_usd": 0.02,
+      "cache_write_usd": 0.25,
+      "output_usd": 1.2
+    },
+    "gpt-5.6-sol": {
+      "display_name": "GPT-5.6 Sol",
+      "input_usd": 5.0,
+      "cached_input_usd": 0.5,
+      "cache_write_usd": 6.25,
+      "output_usd": 30.0
+    },
+    "gpt-5.6-terra": {
+      "display_name": "GPT-5.6 Terra",
+      "input_usd": 2.0,
+      "cached_input_usd": 0.2,
+      "cache_write_usd": 2.5,
+      "output_usd": 12.0
+    },
+    "gpt-5.5": {
+      "display_name": "GPT-5.5",
+      "input_usd": 5.0,
+      "cached_input_usd": 0.5,
+      "cache_write_usd": null,
+      "output_usd": 30.0
+    },
+    "gpt-5.5-pro": {
+      "display_name": "GPT-5.5 Pro",
+      "input_usd": 30.0,
+      "cached_input_usd": null,
+      "cache_write_usd": null,
+      "output_usd": 180.0
+    },
+    "gpt-5.4": {
+      "display_name": "GPT-5.4",
+      "input_usd": 2.5,
+      "cached_input_usd": 0.25,
+      "cache_write_usd": null,
+      "output_usd": 15.0
+    },
+    "gpt-5.4-mini": {
+      "display_name": "GPT-5.4 Mini",
+      "input_usd": 0.75,
+      "cached_input_usd": 0.075,
+      "cache_write_usd": null,
+      "output_usd": 4.5
+    },
+    "gpt-5.4-nano": {
+      "display_name": "GPT-5.4 Nano",
+      "input_usd": 0.2,
+      "cached_input_usd": 0.02,
+      "cache_write_usd": null,
+      "output_usd": 1.25
+    },
+    "gpt-5.4-pro": {
+      "display_name": "GPT-5.4 Pro",
+      "input_usd": 30.0,
+      "cached_input_usd": null,
+      "cache_write_usd": null,
+      "output_usd": 180.0
+    },
+    "gpt-5": {
+      "display_name": "GPT-5 (legacy alias)",
+      "input_usd": 2.5,
+      "cached_input_usd": 0.25,
+      "cache_write_usd": null,
+      "output_usd": 15.0,
+      "alias_of": "gpt-5.4 (closest published match)"
+    },
+    "gpt-5-codex": {
+      "display_name": "GPT-5 Codex (legacy alias)",
+      "input_usd": 2.5,
+      "cached_input_usd": 0.25,
+      "cache_write_usd": null,
+      "output_usd": 15.0,
+      "alias_of": "gpt-5.4"
+    },
+    "gpt-4.1": {
+      "display_name": "GPT-4.1 (legacy alias — 2025 model, not in current pricing page snapshot)",
+      "input_usd": 2.0,
+      "cached_input_usd": 0.5,
+      "cache_write_usd": null,
+      "output_usd": 8.0,
+      "notes": "Last published 2025; rates preserved for runs against older Codex models."
+    },
+    "gpt-4o": {
+      "display_name": "GPT-4o (legacy alias — 2024 model)",
+      "input_usd": 2.5,
+      "cached_input_usd": 1.25,
+      "cache_write_usd": null,
+      "output_usd": 10.0,
+      "notes": "Last published 2024; preserved for cross-grade runs that still target gpt-4o."
+    }
+  },
+  "_aliases": {
+    "gpt-5": "gpt-5.4",
+    "gpt-5-codex": "gpt-5.4",
+    "gpt-5-mini": "gpt-5.4-mini",
+    "gpt-5-nano": "gpt-5.4-nano"
+  }
+}

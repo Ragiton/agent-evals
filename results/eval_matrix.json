@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Eval matrix: which specs × which models to run. Edit `approved` to true to schedule a cell. The nightly cron reads this file and only runs cells with approved=true and no passing run.",
+  "updated_at": "2026-08-01T00:00:00Z",
+  "default_max_budget_usd": 2.0,
+  "default_max_turns": 60,
+  "cells": [
+    {
+      "id": "led-blinky-minimal__claude-code__claude-sonnet-4-6",
+      "spec_id": "led-blinky-minimal",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "condition": "baseline",
+      "approved": true,
+      "notes": "first eval, smoke-test baseline"
+    },
+    {
+      "id": "led-blinky-minimal__cursor-agent__composer-2.5",
+      "spec_id": "led-blinky-minimal",
+      "agent": "cursor-agent",
+      "model": "composer-2.5",
+      "condition": "baseline",
+      "approved": true,
+      "notes": "Cursor cross-CLI validation on the simplest spec"
+    },
+    {
+      "id": "led-blinky-minimal__codex__gpt-5.6-luna",
+      "spec_id": "led-blinky-minimal",
+      "agent": "codex",
+      "model": "gpt-5.6-luna",
+      "condition": "baseline",
+      "approved": false,
+      "notes": "Codex lane currently at 94% — do not enable until reset"
+    },
+    {
+      "id": "bme280-sensor-breakout__claude-code__claude-sonnet-4-6",
+      "spec_id": "bme280-sensor-breakout",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "condition": "baseline",
+      "approved": true,
+      "notes": "second-smallest spec"
+    },
+    {
+      "id": "bme280-sensor-breakout__claude-code__claude-sonnet-4-6__mash-kicad-skills",
+      "spec_id": "bme280-sensor-breakout",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "condition": "mash-kicad-skills",
+      "approved": true,
+      "notes": "skill condition variant"
+    },
+    {
+      "id": "usb-c-host-only__claude-code__claude-sonnet-4-6",
+      "spec_id": "usb-c-host-only",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "condition": "baseline",
+      "approved": true,
+      "notes": "USB-C eval, medium difficulty"
+    },
+    {
+      "id": "buck-converter-3v3__claude-code__claude-sonnet-4-6",
+      "spec_id": "buck-converter-3v3",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "condition": "baseline",
+      "approved": true,
+      "notes": "power conversion eval"
+    },
+    {
+      "id": "esp32-devboard-minimal__claude-code__claude-sonnet-4-6",
+      "spec_id": "esp32-devboard-minimal",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "condition": "baseline",
+      "approved": true,
+      "notes": "MCU eval, complex"
+    },
+    {
+      "id": "two-layer-impedance-match__claude-code__claude-sonnet-4-6",
+      "spec_id": "two-layer-impedance-match",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "condition": "baseline",
+      "approved": false,
+      "notes": "hardest spec — defer until cheaper cells complete"
+    }
+  ]
+}

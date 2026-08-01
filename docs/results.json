@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T19:33:34.043112Z",
+  "generated_at": "2026-08-01T22:14:25.074247Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -538,6 +538,28 @@
     }
   ],
   "runs": [
+    {
+      "run_id": "20260801T193622Z-ca4c02",
+      "spec_id": "led-blinky-minimal",
+      "agent": "claude-code",
+      "model": "claude-sonnet-4-6",
+      "started_at": "2026-08-01T19:36:22.131676Z",
+      "finished_at": "2026-08-01T19:41:12.649333Z",
+      "graded_at": null,
+      "exit_code": 1,
+      "status": "harness_error",
+      "deterministic": [],
+      "deterministic_score": null,
+      "final_score": null,
+      "passed": null,
+      "llm_judge": null,
+      "cross_grades": [],
+      "cost_usd": null,
+      "usage": null,
+      "skill": "smoke-test-1",
+      "max_budget_usd": 0.5,
+      "summary": null
+    },
     {
       "run_id": "20260725T220900Z-deadbe",
       "spec_id": "led-blinky-minimal",
@@ -1672,5 +1694,129 @@
         }
       }
     }
-  ]
+  ],
+  "matrix": {
+    "schema_version": "1.0.0",
+    "updated_at": "2026-08-01T00:00:00Z",
+    "default_max_budget_usd": 2.0,
+    "default_max_turns": 60,
+    "cells": [
+      {
+        "id": "led-blinky-minimal__claude-code__claude-sonnet-4-6",
+        "spec_id": "led-blinky-minimal",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "condition": "baseline",
+        "approved": true,
+        "notes": "first eval, smoke-test baseline",
+        "has_passing_run": false,
+        "latest_run_status": "completed",
+        "latest_run_passed": true,
+        "latest_run_id": "run-002-led-blinky-cursor"
+      },
+      {
+        "id": "led-blinky-minimal__cursor-agent__composer-2.5",
+        "spec_id": "led-blinky-minimal",
+        "agent": "cursor-agent",
+        "model": "composer-2.5",
+        "condition": "baseline",
+        "approved": true,
+        "notes": "Cursor cross-CLI validation on the simplest spec",
+        "has_passing_run": false,
+        "latest_run_status": "completed",
+        "latest_run_passed": false,
+        "latest_run_id": "run-003-led-blinky-cursor"
+      },
+      {
+        "id": "led-blinky-minimal__codex__gpt-5.6-luna",
+        "spec_id": "led-blinky-minimal",
+        "agent": "codex",
+        "model": "gpt-5.6-luna",
+        "condition": "baseline",
+        "approved": false,
+        "notes": "Codex lane currently at 94% \u2014 do not enable until reset",
+        "has_passing_run": false,
+        "latest_run_status": null
+      },
+      {
+        "id": "bme280-sensor-breakout__claude-code__claude-sonnet-4-6",
+        "spec_id": "bme280-sensor-breakout",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "condition": "baseline",
+        "approved": true,
+        "notes": "second-smallest spec",
+        "has_passing_run": false,
+        "latest_run_status": "completed",
+        "latest_run_passed": null,
+        "latest_run_id": "run-009-bme280-baseline"
+      },
+      {
+        "id": "bme280-sensor-breakout__claude-code__claude-sonnet-4-6__mash-kicad-skills",
+        "spec_id": "bme280-sensor-breakout",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "condition": "mash-kicad-skills",
+        "approved": true,
+        "notes": "skill condition variant",
+        "has_passing_run": false,
+        "latest_run_status": "completed",
+        "latest_run_passed": null,
+        "latest_run_id": "run-004-bme280-mash"
+      },
+      {
+        "id": "usb-c-host-only__claude-code__claude-sonnet-4-6",
+        "spec_id": "usb-c-host-only",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "condition": "baseline",
+        "approved": true,
+        "notes": "USB-C eval, medium difficulty",
+        "has_passing_run": false,
+        "latest_run_status": "completed",
+        "latest_run_passed": null,
+        "latest_run_id": "run-010-usb-c-baseline"
+      },
+      {
+        "id": "buck-converter-3v3__claude-code__claude-sonnet-4-6",
+        "spec_id": "buck-converter-3v3",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "condition": "baseline",
+        "approved": true,
+        "notes": "power conversion eval",
+        "has_passing_run": false,
+        "latest_run_status": "completed",
+        "latest_run_passed": null,
+        "latest_run_id": "run-011-buck-baseline"
+      },
+      {
+        "id": "esp32-devboard-minimal__claude-code__claude-sonnet-4-6",
+        "spec_id": "esp32-devboard-minimal",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "condition": "baseline",
+        "approved": true,
+        "notes": "MCU eval, complex",
+        "has_passing_run": false,
+        "latest_run_status": "completed",
+        "latest_run_passed": null,
+        "latest_run_id": "run-012-esp32-baseline"
+      },
+      {
+        "id": "two-layer-impedance-match__claude-code__claude-sonnet-4-6",
+        "spec_id": "two-layer-impedance-match",
+        "agent": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "condition": "baseline",
+        "approved": false,
+        "notes": "hardest spec \u2014 defer until cheaper cells complete",
+        "has_passing_run": false,
+        "latest_run_status": "completed",
+        "latest_run_passed": null,
+        "latest_run_id": "run-013-impedance-baseline"
+      }
+    ]
+  },
+  "plan_usage": null
 }

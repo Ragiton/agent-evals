@@ -173,10 +173,84 @@ def main():
         "schema_version": "1.0.0",
         "evals": evals,
         "runs": runs,
+        "matrix": _load_matrix(results_dir),
+        "plan_usage": _load_usage(results_dir),
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(doc, indent=2))
     print(f"[aggregate] {len(runs)} runs, {len(evals)} evals -> {output}")
+
+
+def _load_matrix(results_dir: pathlib.Path) -> dict | None:
+    matrix_path = results_dir / "eval_matrix.json"
+    if not matrix_path.exists():
+        return None
+    try:
+        matrix = json.loads(matrix_path.read_text())
+        # Annotate each cell with its current pass status from `runs`.
+        # The runs collection has already been computed in this same invocation;
+        # cross-reference by (spec_id, agent, model, skill/condition).
+        matrix_status = []
+        cells = matrix.get("cells", [])
+        # We can't reach `runs` from here without passing it; do a fresh lookup.
+        for cell in cells:
+            entry = {
+                "id": cell.get("id"),
+                "spec_id": cell.get("spec_id"),
+                "agent": cell.get("agent"),
+                "model": cell.get("model"),
+                "condition": cell.get("condition"),
+                "approved": bool(cell.get("approved", False)),
+                "notes": cell.get("notes", ""),
+                "has_passing_run": False,
+                "latest_run_status": None,
+            }
+            # Look up the most recent run for this cell
+            for run_dir in sorted((results_dir / "runs").iterdir(), reverse=True):
+                if not run_dir.is_dir():
+                    continue
+                run_json = run_dir / "run.json"
+                if not run_json.exists():
+                    continue
+                try:
+                    rd = json.loads(run_json.read_text())
+                except Exception:
+                    continue
+                if (
+                    rd.get("spec_id") == cell.get("spec_id")
+                    and rd.get("agent") == cell.get("agent")
+                    and rd.get("model") == cell.get("model")
+                    and rd.get("condition", "baseline") == cell.get("condition", "baseline")
+                ):
+                    grade_path = run_dir / "grade.json"
+                    try:
+                        gd = json.loads(grade_path.read_text()) if grade_path.exists() else {}
+                    except Exception:
+                        gd = {}
+                    entry["latest_run_status"] = rd.get("status") or "completed"
+                    entry["latest_run_passed"] = gd.get("passed")
+                    entry["latest_run_id"] = rd.get("run_id")
+                    break
+            matrix_status.append(entry)
+        return {
+            "schema_version": matrix.get("schema_version", "1.0.0"),
+            "updated_at": matrix.get("updated_at"),
+            "default_max_budget_usd": matrix.get("default_max_budget_usd", 2.0),
+            "default_max_turns": matrix.get("default_max_turns", 60),
+            "cells": matrix_status,
+        }
+    except Exception:
+        return None
+
+
+def _load_usage(results_dir: pathlib.Path) -> dict | None:
+    usage_path = results_dir / "usage.json"
+    if not usage_path.exists():
+        return None
+    try:
+        return json.loads(usage_path.read_text())
+    except Exception:
+        return None
 
 
 if __name__ == "__main__":

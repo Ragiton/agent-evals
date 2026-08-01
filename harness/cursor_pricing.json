@@ -1,0 +1,168 @@
+{
+  "_source": {
+    "url": "https://cursor.com/docs/models-and-pricing",
+    "retrieved_at": "2026-08-01",
+    "notes": "Prices are per 1M tokens. Cursor adds a Cursor Token Rate of $0.25 per 1M tokens on top of model API pricing for third-party models on Teams/Enterprise plans. The Pro plan pools $20 of 'Other Models' usage per month; costs above that are billed on-demand at the same rates. Regional data residency adds a 10% uplift (not modeled here). The 'cursor_pricing_estimate' cost source is an estimate derived from the published rates; Cursor's DashboardService does not return per-call USD, so we apply these rates to the token counts in the JSON envelope."
+  },
+  "_units": "USD per 1,000,000 tokens",
+  "_format": "input_usd, cache_write_usd, cache_read_usd, output_usd — 'null' means the model has no published rate for that token class and is treated as 0 cost",
+  "models": {
+    "auto-cost": {
+      "display_name": "Auto Cost",
+      "input_usd": 1.25,
+      "cache_write_usd": 1.25,
+      "cache_read_usd": 0.25,
+      "output_usd": 6.0,
+      "source_pool": "cursor_models"
+    },
+    "composer-2.5": {
+      "display_name": "Composer 2.5",
+      "input_usd": 0.5,
+      "cache_write_usd": null,
+      "cache_read_usd": 0.2,
+      "output_usd": 2.5,
+      "source_pool": "cursor_models"
+    },
+    "composer-2.5-fast": {
+      "display_name": "Composer 2.5 (Fast)",
+      "input_usd": 3.0,
+      "cache_write_usd": null,
+      "cache_read_usd": 0.5,
+      "output_usd": 15.0,
+      "source_pool": "cursor_models"
+    },
+    "grok-4.5": {
+      "display_name": "Grok 4.5",
+      "input_usd": 2.0,
+      "cache_write_usd": null,
+      "cache_read_usd": 0.5,
+      "output_usd": 6.0,
+      "source_pool": "cursor_models"
+    },
+    "grok-4.5-fast": {
+      "display_name": "Grok 4.5 (Fast)",
+      "input_usd": 4.0,
+      "cache_write_usd": null,
+      "cache_read_usd": 1.0,
+      "output_usd": 18.0,
+      "source_pool": "cursor_models"
+    },
+    "claude-sonnet-4-6": {
+      "display_name": "Claude Sonnet 4.6",
+      "input_usd": 3.0,
+      "cache_write_usd": 3.75,
+      "cache_read_usd": 0.3,
+      "output_usd": 15.0,
+      "source_pool": "other_models",
+      "alias_of": "claude-sonnet-5 (closest published match — see _source notes)"
+    },
+    "claude-sonnet-5": {
+      "display_name": "Claude Sonnet 5",
+      "input_usd": 3.0,
+      "cache_write_usd": 3.75,
+      "cache_read_usd": 0.3,
+      "output_usd": 15.0,
+      "source_pool": "other_models"
+    },
+    "claude-sonnet-4-5": {
+      "display_name": "Claude Sonnet 4.5 (legacy alias)",
+      "input_usd": 3.0,
+      "cache_write_usd": 3.75,
+      "cache_read_usd": 0.3,
+      "output_usd": 15.0,
+      "source_pool": "other_models",
+      "alias_of": "claude-sonnet-5"
+    },
+    "claude-opus-4-8": {
+      "display_name": "Claude Opus 4.8 (alias)",
+      "input_usd": 5.0,
+      "cache_write_usd": 6.25,
+      "cache_read_usd": 0.5,
+      "output_usd": 25.0,
+      "source_pool": "other_models",
+      "alias_of": "claude-opus-5 (closest published match — see _source notes)"
+    },
+    "claude-opus-5": {
+      "display_name": "Claude Opus 5",
+      "input_usd": 5.0,
+      "cache_write_usd": 6.25,
+      "cache_read_usd": 0.5,
+      "output_usd": 25.0,
+      "source_pool": "other_models"
+    },
+    "claude-opus-4-5": {
+      "display_name": "Claude Opus 4.5 (legacy alias)",
+      "input_usd": 5.0,
+      "cache_write_usd": 6.25,
+      "cache_read_usd": 0.5,
+      "output_usd": 25.0,
+      "source_pool": "other_models",
+      "alias_of": "claude-opus-5"
+    },
+    "claude-haiku-4-5": {
+      "display_name": "Claude Haiku 4.5 (no published rate — use Sonnet tier as conservative estimate)",
+      "input_usd": 3.0,
+      "cache_write_usd": 3.75,
+      "cache_read_usd": 0.3,
+      "output_usd": 15.0,
+      "source_pool": "other_models",
+      "alias_of": "claude-sonnet-5 (conservative — see _source notes)"
+    },
+    "gpt-5": {
+      "display_name": "GPT-5 (legacy alias)",
+      "input_usd": 2.5,
+      "cache_write_usd": null,
+      "cache_read_usd": 0.25,
+      "output_usd": 15.0,
+      "source_pool": "other_models",
+      "alias_of": "gpt-5.4 (closest published match)"
+    },
+    "gpt-5.4": {
+      "display_name": "GPT-5.4",
+      "input_usd": 2.5,
+      "cache_write_usd": null,
+      "cache_read_usd": 0.25,
+      "output_usd": 15.0,
+      "source_pool": "other_models"
+    },
+    "gpt-5.5": {
+      "display_name": "GPT-5.5",
+      "input_usd": 5.0,
+      "cache_write_usd": null,
+      "cache_read_usd": 0.5,
+      "output_usd": 30.0,
+      "source_pool": "other_models"
+    },
+    "gpt-5.6-luna": {
+      "display_name": "GPT-5.6 Luna",
+      "input_usd": 0.2,
+      "cache_write_usd": 0.25,
+      "cache_read_usd": 0.02,
+      "output_usd": 1.2,
+      "source_pool": "other_models"
+    },
+    "gpt-5.6-sol": {
+      "display_name": "GPT-5.6 Sol",
+      "input_usd": 5.0,
+      "cache_write_usd": 6.25,
+      "cache_read_usd": 0.5,
+      "output_usd": 30.0,
+      "source_pool": "other_models"
+    },
+    "gpt-5.6-terra": {
+      "display_name": "GPT-5.6 Terra",
+      "input_usd": 2.0,
+      "cache_write_usd": 2.5,
+      "cache_read_usd": 0.2,
+      "output_usd": 12.0,
+      "source_pool": "other_models"
+    }
+  },
+  "_aliases": {
+    "claude-sonnet-4-6": "claude-sonnet-5",
+    "claude-opus-4-8": "claude-opus-5",
+    "claude-haiku-4-5": "claude-sonnet-5",
+    "gpt-5": "gpt-5.4",
+    "gpt-5-codex": "gpt-5.4"
+  }
+}
