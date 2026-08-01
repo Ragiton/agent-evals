@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T00:21:56.709009Z",
+  "generated_at": "2026-08-01T19:33:34.043112Z",
   "schema_version": "1.0.0",
   "evals": [
     {
@@ -547,6 +547,7 @@
       "finished_at": "2026-07-25T22:11:00Z",
       "graded_at": null,
       "exit_code": 124,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -578,6 +579,7 @@
       "finished_at": "2026-07-25T22:26:00Z",
       "graded_at": "2026-07-25T22:38:23.998747Z",
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [
         {
           "name": "schematic_erc_clean",
@@ -666,6 +668,7 @@
       "finished_at": "2026-07-25T22:36:00Z",
       "graded_at": null,
       "exit_code": 0,
+      "status": null,
       "deterministic": [
         {
           "name": "schematic_erc_clean",
@@ -985,6 +988,7 @@
       "finished_at": "2026-07-26T17:34:30.853960+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -1023,6 +1027,7 @@
       "finished_at": "2026-07-26T17:34:32.304591+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -1061,6 +1066,7 @@
       "finished_at": "2026-07-26T17:34:41.001865+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -1099,6 +1105,7 @@
       "finished_at": "2026-07-26T17:34:42.030446+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -1137,6 +1144,7 @@
       "finished_at": "2026-07-26T17:44:36.369028+00:00",
       "graded_at": null,
       "exit_code": 0,
+      "status": null,
       "deterministic": [
         {
           "name": "required_project_files",
@@ -1478,6 +1486,7 @@
       "finished_at": "2026-07-26T19:32:51.165113+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -1516,6 +1525,7 @@
       "finished_at": "2026-07-26T19:55:32.369891+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -1554,6 +1564,7 @@
       "finished_at": "2026-07-26T20:25:11.082218+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -1592,6 +1603,7 @@
       "finished_at": "2026-07-26T21:05:10.768333+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
@@ -1630,6 +1642,7 @@
       "finished_at": "2026-07-26T21:45:11.333163+00:00",
       "graded_at": null,
       "exit_code": 1,
+      "status": "harness_error",
       "deterministic": [],
       "deterministic_score": null,
       "final_score": null,
