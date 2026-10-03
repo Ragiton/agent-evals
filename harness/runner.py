@@ -8,18 +8,18 @@ Takes a spec.yaml + agent config, launches the chosen CLI in a fresh workspace,
 captures artifacts. Optionally invokes a separate cross-grader CLI.
 
 Cost rules (HARD):
-  - Never invokes Hermes as final verifier.
+  - Codex uses its native CLI; other CLIs are explicit benchmark subjects.
   - Final verifier is always one of: claude-code, codex, cursor-agent.
   - Caps run time via --max-runtime and (where supported) --max-budget-usd.
   - Records every dollar spent / token used into results.json.
 
 Usage:
   python harness/runner.py --spec evals/01-led-blinky-minimal.yaml \\
-                            --agent claude-code --model claude-sonnet-4-6 \\
+                            --agent codex --model gpt-6-luna \\
                             --max-runtime 30m --max-budget 1.0 --max-turns 40
 
   python harness/runner.py --spec evals/01-led-blinky-minimal.yaml \\
-                            --agent claude-code --model claude-sonnet-4-6 \\
+                            --agent codex --model gpt-6-luna \\
                             --count 3 --max-budget 1.0 --max-turns 40
 
 NOTES for the implementation subagent:
@@ -27,7 +27,7 @@ NOTES for the implementation subagent:
   - Workspace: use --workspace-dir or default to ./results/runs/<run-id>/
   - Artifacts: copy/move from workspace/<expected-outputs> back to results/runs/<run-id>/artifacts/
   - results.json: one entry per run with all artifact paths and grading results.
-  - The runner does NOT call Hermes. It launches a CLI subprocess and waits.
+  - The runner launches the selected CLI directly and waits.
 """
 from __future__ import annotations
 import argparse, json, os, secrets, subprocess, sys, time, pathlib, shlex, datetime, shutil
@@ -44,9 +44,11 @@ AGENTS = {
         "cmd": ["codex", "exec", "--no-alt-screen",
                 "-C", "{workspace}",
                 "--model", "{model}",
-                "--dangerously-bypass-approvals-and-sandbox"],
+                "--sandbox", "workspace-write",
+                "--ask-for-approval", "never",
+                "-"],
         "cost_flag": None,
-        "model_default": "gpt-5.6-luna",
+        "model_default": "gpt-6-luna",
         "stdin_mode": True,
     },
     "cursor-agent": {
@@ -54,15 +56,6 @@ AGENTS = {
                 "--model", "{model}"],
         "cost_flag": None,
         "model_default": "composer-2.5",
-        "stdin_mode": True,
-    },
-    "coder-codex": {
-        "cmd": ["claude", "-p", "--permission-mode", "bypassPermissions",
-                "--model", "{model}",
-                "--append-system-prompt", "You are running inside the agent-evals harness. "
-                "Use the openai-codex provider via Hermes when given a token; do not infer it."],
-        "cost_flag": "--max-budget-usd",
-        "model_default": "gpt-5.6-luna",
         "stdin_mode": True,
     },
 }

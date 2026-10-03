@@ -30,10 +30,8 @@ with this schema::
 
 The wrappers never invoke a shell.  They pass a list of arguments to
 ``subprocess.run`` and set ``cwd`` to the supplied workspace.  ``codex`` is
-routed through Hermes because the installed Codex CLI does not select Hermes'
-pooled ``openai-codex`` provider.  Its command is therefore ``hermes
---oneshot --model gpt-5.6-luna --provider openai-codex ...`` while the public
-agent name remains ``codex``.
+invoked directly with the native Codex CLI and its own sign-in. The provider
+field is recorded metadata; it is not a routing command.
 
 The return value is an :class:`InvocationResult`.  It contains the argv list,
 workspace, model/provider, captured stdout/stderr, exit status, timeout/error
@@ -59,7 +57,7 @@ from typing import Any, Mapping, Sequence
 SUPPORTED_AGENTS = ("claude-code", "codex", "cursor-agent")
 LOCKED_MODELS = {
     "claude-code": "claude-sonnet-4-6",
-    "codex": "gpt-5.6-luna",
+    "codex": "gpt-6-luna",
     "cursor-agent": "composer-2.5",
 }
 LOCKED_PROVIDERS = {
@@ -394,7 +392,7 @@ def run_codex(
     *,
     timeout: float | None = None,
 ) -> InvocationResult:
-    """Invoke Codex through Hermes' pooled ``openai-codex`` provider."""
+    """Invoke the native Codex CLI with the configured model."""
 
     return _run_named("codex", agent_config, workspace, prompt, spec, output_path, log_path, timeout)
 
@@ -573,23 +571,23 @@ def _build_command(
         return tuple(args), True
 
     if config.agent == "codex":
-        # Hermes is the provider router for this project.  Unlike the standalone
-        # Codex CLI, it accepts --provider openai-codex and uses the pooled OAuth
-        # credential without reading ~/.codex/auth.json.
-        executable = config.executable or "hermes"
+        executable = config.executable or "codex"
         args = [
             executable,
-            "--oneshot",
+            "exec",
+            "--no-alt-screen",
+            "--cd",
+            str(workspace),
             "--model",
             config.model or LOCKED_MODELS[config.agent],
-            "--provider",
-            config.provider or LOCKED_PROVIDERS[config.agent],
-            "--no-restore-cwd",
-            "--ignore-rules",
+            "--sandbox",
+            "workspace-write",
+            "--ask-for-approval",
+            "never",
         ]
         args.extend(config.extra_args)
-        args.append(prompt)
-        return tuple(args), False
+        args.append("-")
+        return tuple(args), True
 
     if config.agent == "cursor-agent":
         executable = config.executable or "cursor-agent"
