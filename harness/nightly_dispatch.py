@@ -35,7 +35,6 @@ LANE_MIN_REMAINING_PCT = {
     "claude": 50.0,
     "codex": 50.0,
     "cursor": 50.0,
-    "minimax": 50.0,
 }
 
 
@@ -45,8 +44,6 @@ def _lane_for_agent(agent: str) -> str:
         "claude-code": "claude",
         "cursor-agent": "cursor",
         "codex": "codex",
-        "coder-codex": "codex",
-        "hermes-cli": "minimax",
     }.get(agent, agent)
 
 
@@ -80,8 +77,6 @@ def _cli_on_path(agent: str) -> bool:
         "claude-code": "claude",
         "cursor-agent": "cursor-agent",
         "codex": "codex",
-        "coder-codex": "codex",
-        "hermes-cli": "hermes",
     }.get(agent, agent)
     return subprocess.run(["which", bin_], capture_output=True).returncode == 0
 

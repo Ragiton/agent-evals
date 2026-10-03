@@ -6,11 +6,11 @@ Agent Evals — cross_grade.py
 
 Invokes a DIFFERENT CLI than the one that ran the eval, gets its verdict on
 the captured artifacts, and records it. This is the cross-CLI validation
-step. Never Hermes — always one of the CLIs.
+step. Use the explicitly selected CLI adapter.
 
 Usage:
   python harness/cross_grade.py --run results/runs/<run-id>/ \\
-      --agent codex --model gpt-5.6-luna \\
+      --agent codex --model gpt-6-luna \\
       --prompt "Inspect the kicad files in this workspace, list component refs, verify the 555 wiring..."
 """
 from __future__ import annotations
@@ -20,7 +20,8 @@ AGENTS = {
     "claude-code": ["claude", "-p", "--permission-mode", "bypassPermissions",
                     "--model", "{model}", "--max-turns", "5"],
     "codex": ["codex", "exec", "--no-alt-screen", "-C", "{workspace}",
-              "--model", "{model}", "--dangerously-bypass-approvals-and-sandbox"],
+              "--model", "{model}", "--sandbox", "workspace-write",
+              "--ask-for-approval", "never", "-"],
     "cursor-agent": ["cursor-agent", "-p", "--trust", "--model", "{model}",
                      "--output-format", "json"],
 }

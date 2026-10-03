@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "description": "Eval matrix: which specs × which models to run. Edit `approved` to true to schedule a cell. The nightly cron reads this file and only runs cells with approved=true and no passing run.",
-  "updated_at": "2026-08-01T00:00:00Z",
+  "description": "Manual experiment matrix. Cells require fresh approval before dispatch; no old schedule, quota, or machine state is assumed.",
+  "updated_at": "2026-10-03T00:00:00Z",
   "default_max_budget_usd": 2.0,
   "default_max_turns": 60,
   "cells": [
@@ -11,8 +11,8 @@
       "agent": "claude-code",
       "model": "claude-sonnet-4-6",
       "condition": "baseline",
-      "approved": true,
-      "notes": "first eval, smoke-test baseline"
+      "approved": false,
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     },
     {
       "id": "led-blinky-minimal__cursor-agent__composer-2.5",
@@ -20,8 +20,8 @@
       "agent": "cursor-agent",
       "model": "composer-2.5",
       "condition": "baseline",
-      "approved": true,
-      "notes": "Cursor cross-CLI validation on the simplest spec"
+      "approved": false,
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     },
     {
       "id": "led-blinky-minimal__codex__gpt-5.6-luna",
@@ -30,7 +30,7 @@
       "model": "gpt-5.6-luna",
       "condition": "baseline",
       "approved": false,
-      "notes": "Codex lane currently at 94% — do not enable until reset"
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     },
     {
       "id": "bme280-sensor-breakout__claude-code__claude-sonnet-4-6",
@@ -38,8 +38,8 @@
       "agent": "claude-code",
       "model": "claude-sonnet-4-6",
       "condition": "baseline",
-      "approved": true,
-      "notes": "second-smallest spec"
+      "approved": false,
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     },
     {
       "id": "bme280-sensor-breakout__claude-code__claude-sonnet-4-6__mash-kicad-skills",
@@ -47,8 +47,8 @@
       "agent": "claude-code",
       "model": "claude-sonnet-4-6",
       "condition": "mash-kicad-skills",
-      "approved": true,
-      "notes": "skill condition variant"
+      "approved": false,
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     },
     {
       "id": "usb-c-host-only__claude-code__claude-sonnet-4-6",
@@ -56,8 +56,8 @@
       "agent": "claude-code",
       "model": "claude-sonnet-4-6",
       "condition": "baseline",
-      "approved": true,
-      "notes": "USB-C eval, medium difficulty"
+      "approved": false,
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     },
     {
       "id": "buck-converter-3v3__claude-code__claude-sonnet-4-6",
@@ -65,8 +65,8 @@
       "agent": "claude-code",
       "model": "claude-sonnet-4-6",
       "condition": "baseline",
-      "approved": true,
-      "notes": "power conversion eval"
+      "approved": false,
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     },
     {
       "id": "esp32-devboard-minimal__claude-code__claude-sonnet-4-6",
@@ -74,8 +74,8 @@
       "agent": "claude-code",
       "model": "claude-sonnet-4-6",
       "condition": "baseline",
-      "approved": true,
-      "notes": "MCU eval, complex"
+      "approved": false,
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     },
     {
       "id": "two-layer-impedance-match__claude-code__claude-sonnet-4-6",
@@ -84,7 +84,7 @@
       "model": "claude-sonnet-4-6",
       "condition": "baseline",
       "approved": false,
-      "notes": "hardest spec — defer until cheaper cells complete"
+      "notes": "Prior approval expired after the 2026 reimage; recheck the environment and explicitly approve before running."
     }
   ]
 }
